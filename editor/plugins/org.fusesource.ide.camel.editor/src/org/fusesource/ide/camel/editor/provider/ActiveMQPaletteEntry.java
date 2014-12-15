@@ -16,7 +16,6 @@ import java.util.List;
 import org.eclipse.graphiti.features.ICreateFeature;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.tb.IImageDecorator;
-import org.eclipse.graphiti.tb.ImageDecorator;
 import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.features.create.CreateEndpointFigureFeature;
 import org.fusesource.ide.camel.editor.provider.PaletteCategoryItemProvider.CATEGORY_TYPE;
@@ -25,15 +24,8 @@ import org.fusesource.ide.camel.model.connectors.ConnectorDependency;
 
 /**
  * @author lhein
- *
  */
-public class FileConnectorContribution implements ICustomPaletteEntry {
-
-    /**
-     * 
-     */
-    public FileConnectorContribution() {
-    }
+public class ActiveMQPaletteEntry implements ICustomPaletteEntry {
 
     /* (non-Javadoc)
      * @see org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry#getPaletteCategory()
@@ -43,13 +35,12 @@ public class FileConnectorContribution implements ICustomPaletteEntry {
         return CATEGORY_TYPE.COMPONENTS;
     }
 
-    /*
-     * (non-Javadoc)
+    /* (non-Javadoc)
      * @see org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry#newCreateFeature(org.eclipse.graphiti.features.IFeatureProvider)
      */
     @Override
     public ICreateFeature newCreateFeature(IFeatureProvider fp) {
-        return new CreateEndpointFigureFeature(fp, "Filesystem", "Enables you to poll a folder or to write into files...", new Endpoint("file:"));
+        return new CreateEndpointFigureFeature(null, "ActiveMQ", "Creates an ActiveMQ connector endpoint...", new Endpoint("activemq:queue:foo"));
     }
 
     /* (non-Javadoc)
@@ -57,7 +48,7 @@ public class FileConnectorContribution implements ICustomPaletteEntry {
      */
     @Override
     public IImageDecorator getImageDecorator(Object object) {
-        return new ImageDecorator(ImageProvider.getKeyForSmallIcon("endpoint.png"));
+        return null;
     }
 
     /* (non-Javadoc)
@@ -65,7 +56,7 @@ public class FileConnectorContribution implements ICustomPaletteEntry {
      */
     @Override
     public String getTypeName() {
-        return "fileEndpoint";
+        return "ActiveMQ";
     }
 
     /* (non-Javadoc)
@@ -73,7 +64,6 @@ public class FileConnectorContribution implements ICustomPaletteEntry {
      */
     @Override
     public boolean supports(Class type) {
-        if (type.isAssignableFrom(Endpoint.class)) return true;
         return false;
     }
 
@@ -82,16 +72,12 @@ public class FileConnectorContribution implements ICustomPaletteEntry {
      */
     @Override
     public List<ConnectorDependency> getRequiredCapabilities(Object object) {
-        ArrayList<ConnectorDependency> deps = new ArrayList<ConnectorDependency>();
-        
+        List<ConnectorDependency> deps = new ArrayList<ConnectorDependency>();
         ConnectorDependency dep = new ConnectorDependency();
-        dep.setGroupId("org.apache.camel");
-        dep.setArtifactId("camel-core");
-        dep.setVersion(Activator.getDefault().getCamelVersion());
-        
+        dep.setGroupId("org.apache.activemq");
+        dep.setArtifactId("activemq-camel");
+        dep.setVersion("5.6.0");
         deps.add(dep);
-        
         return deps;
     }
-
 }

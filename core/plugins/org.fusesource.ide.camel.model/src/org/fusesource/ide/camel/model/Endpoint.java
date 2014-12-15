@@ -143,7 +143,7 @@ public class Endpoint extends AbstractNode {
 
 	@Override
 	public String getCategoryName() {
-		return "Connectors";
+		return "Components";
 	}
 
 	/*

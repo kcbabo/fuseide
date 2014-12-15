@@ -62,7 +62,7 @@ public class Process extends AbstractNode {
 
     @Override
     public String getCategoryName() {
-        return "Connectors";
+        return "Components";
     }
 
     /**

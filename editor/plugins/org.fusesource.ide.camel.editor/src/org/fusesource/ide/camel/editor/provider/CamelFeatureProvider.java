@@ -55,8 +55,8 @@ import org.fusesource.ide.camel.editor.CamelModelIndependenceSolver;
 import org.fusesource.ide.camel.editor.editor.RiderDesignEditor;
 import org.fusesource.ide.camel.editor.features.add.AddFlowFeature;
 import org.fusesource.ide.camel.editor.features.add.AddNodeFeature;
-import org.fusesource.ide.camel.editor.features.create.CreateBeanFigureFeature;
-import org.fusesource.ide.camel.editor.features.create.CreateEndpointFigureFeature;
+import org.fusesource.ide.camel.editor.features.create.CreateDefinedBeanFigureFeature;
+import org.fusesource.ide.camel.editor.features.create.CreateDefinedEndpointFigureFeature;
 import org.fusesource.ide.camel.editor.features.create.CreateFlowFeature;
 import org.fusesource.ide.camel.editor.features.custom.DeleteAllEndpointBreakpointsFeature;
 import org.fusesource.ide.camel.editor.features.custom.DeleteEndpointBreakpointFeature;
@@ -160,7 +160,7 @@ public class CamelFeatureProvider extends DefaultFeatureProvider {
 			String title = bean.getDisplayText();
 			String description = "bean '" + name + "' of type " + aClass;
 
-			featureList.add(new CreateBeanFigureFeature(this, title, description, bean));
+			featureList.add(new CreateDefinedBeanFigureFeature(this, title, description, bean));
 		}
 	}
 
@@ -176,7 +176,7 @@ public class CamelFeatureProvider extends DefaultFeatureProvider {
 			processedURIs.add(url);
 			String description = endpoint.getDescription();
 			String title = endpoint.getDisplayText();
-			featureList.add(new CreateEndpointFigureFeature(this, title, description, endpoint));
+			featureList.add(new CreateDefinedEndpointFigureFeature(this, title, description, endpoint));
 		}
 
 	}

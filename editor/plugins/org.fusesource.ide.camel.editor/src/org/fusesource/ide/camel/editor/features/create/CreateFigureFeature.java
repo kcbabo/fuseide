@@ -39,8 +39,7 @@ public class CreateFigureFeature<E> extends AbstractCreateFeature implements Pal
 
 	@Override
 	public CATEGORY_TYPE getCategoryType() {
-		String name = getCategoryName();
-		return CATEGORY_TYPE.getCategoryType(name);
+		return CATEGORY_TYPE.getCategoryType(getCategoryName());
 	}
 
 

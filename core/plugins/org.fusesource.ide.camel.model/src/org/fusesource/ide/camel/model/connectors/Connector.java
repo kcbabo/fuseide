@@ -11,6 +11,8 @@
 package org.fusesource.ide.camel.model.connectors;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -63,7 +65,18 @@ public class Connector {
 	@XmlElementWrapper(name = "prefixes")
 	@XmlElement(name = "prefix")
 	public ArrayList<ConnectorProtocol> getProtocols() {
-		return this.protocols;
+	    if (this.protocols != null) {
+    		Collections.sort(this.protocols, new Comparator<ConnectorProtocol>() {
+    		    /* (non-Javadoc)
+    		     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+    		     */
+    		    @Override
+    		    public int compare(ConnectorProtocol o1, ConnectorProtocol o2) {
+    		        return o1.getPrefix().compareTo(o2.getPrefix());
+    		    }
+    		});
+	    }
+	    return this.protocols;
 	}
 	
 	/**

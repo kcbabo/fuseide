@@ -249,13 +249,8 @@ public class Downloader {
                     if (c == null) {
                         c = new Component();
                         c.setClazz(clazz);
-                        c.setId(component);
                     }
-                    
-                    // we take the shortest prefix as component ID (for instance prefer http4 over http4s)
-                    if (component.length()<c.getId().length()) {
-                        c.setId(component);
-                    }
+
                     c.getPrefixes().add(component);                        
                     c.setArtifact(artifact);
 
@@ -536,6 +531,14 @@ public class Downloader {
         private ArtifactDTO artifact;
 
         /**
+         * always sort prefixes and use first prefix as id
+         */
+        public void calculateId() {
+            Collections.sort(prefixes);
+            this.id = prefixes.get(0);
+        }
+        
+        /**
          * @return the artifact
          */
         public ArtifactDTO getArtifact() {
@@ -553,6 +556,7 @@ public class Downloader {
          * @return the id
          */
         public String getId() {
+            calculateId();
             return this.id;
         }
         

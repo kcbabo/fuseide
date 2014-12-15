@@ -54,11 +54,17 @@ public class ConnectorsMessages extends NLS {
 	public static String xquery_connector_title;
 	public static String xquery_connector_description;
 
+	public static String ahc_ws_connector_title;
+	public static String ahc_ws_connector_description;
+
 	public static String stream_connector_title;
 	public static String stream_connector_description;
 
 	public static String sql_connector_title;
 	public static String sql_connector_description;
+
+	public static String netty4_http_connector_title;
+	public static String netty4_http_connector_description;
 
 	public static String file_connector_title;
 	public static String file_connector_description;
@@ -81,11 +87,11 @@ public class ConnectorsMessages extends NLS {
 	public static String snmp_connector_title;
 	public static String snmp_connector_description;
 
-	public static String geocoder_connector_title;
-	public static String geocoder_connector_description;
-
 	public static String mongodb_connector_title;
 	public static String mongodb_connector_description;
+
+	public static String geocoder_connector_title;
+	public static String geocoder_connector_description;
 
 	public static String mina_connector_title;
 	public static String mina_connector_description;
@@ -114,17 +120,23 @@ public class ConnectorsMessages extends NLS {
 	public static String flatpack_connector_title;
 	public static String flatpack_connector_description;
 
+	public static String openshift_connector_title;
+	public static String openshift_connector_description;
+
 	public static String nagios_connector_title;
 	public static String nagios_connector_description;
+
+	public static String gora_connector_title;
+	public static String gora_connector_description;
 
 	public static String string_template_connector_title;
 	public static String string_template_connector_description;
 
-	public static String couchdb_connector_title;
-	public static String couchdb_connector_description;
-
 	public static String krati_connector_title;
 	public static String krati_connector_description;
+
+	public static String couchdb_connector_title;
+	public static String couchdb_connector_description;
 
 	public static String sjms_connector_title;
 	public static String sjms_connector_description;
@@ -162,11 +174,11 @@ public class ConnectorsMessages extends NLS {
 	public static String validator_connector_title;
 	public static String validator_connector_description;
 
-	public static String aws_ddb_connector_title;
-	public static String aws_ddb_connector_description;
-
 	public static String stub_connector_title;
 	public static String stub_connector_description;
+
+	public static String aws_ddb_connector_title;
+	public static String aws_ddb_connector_description;
 
 	public static String ldap_connector_title;
 	public static String ldap_connector_description;
@@ -228,11 +240,14 @@ public class ConnectorsMessages extends NLS {
 	public static String gtask_connector_title;
 	public static String gtask_connector_description;
 
-	public static String smtp_connector_title;
-	public static String smtp_connector_description;
+	public static String imap_connector_title;
+	public static String imap_connector_description;
 
 	public static String ibatis_connector_title;
 	public static String ibatis_connector_description;
+
+	public static String spark_rest_connector_title;
+	public static String spark_rest_connector_description;
 
 	public static String spring_ldap_connector_title;
 	public static String spring_ldap_connector_description;
@@ -294,6 +309,9 @@ public class ConnectorsMessages extends NLS {
 	public static String quickfix_connector_title;
 	public static String quickfix_connector_description;
 
+	public static String google_drive_connector_title;
+	public static String google_drive_connector_description;
+
 	public static String mvel_connector_title;
 	public static String mvel_connector_description;
 
@@ -305,6 +323,9 @@ public class ConnectorsMessages extends NLS {
 
 	public static String jdbc_connector_title;
 	public static String jdbc_connector_description;
+
+	public static String schematron_connector_title;
+	public static String schematron_connector_description;
 
 	public static String atom_connector_title;
 	public static String atom_connector_description;
@@ -348,8 +369,20 @@ public class ConnectorsMessages extends NLS {
 	public static String javaspace_connector_title;
 	public static String javaspace_connector_description;
 
+	public static String rest_connector_title;
+	public static String rest_connector_description;
+
+	public static String atmosphere_websocket_connector_title;
+	public static String atmosphere_websocket_connector_description;
+
+	public static String box_connector_title;
+	public static String box_connector_description;
+
 	public static String irc_connector_title;
 	public static String irc_connector_description;
+
+	public static String dropbox_connector_title;
+	public static String dropbox_connector_description;
 
 	public static String direct_vm_connector_title;
 	public static String direct_vm_connector_description;
@@ -387,6 +420,9 @@ public class ConnectorsMessages extends NLS {
 	public static String twitter_connector_title;
 	public static String twitter_connector_description;
 
+	public static String metrics_connector_title;
+	public static String metrics_connector_description;
+
 	public static String yammer_connector_title;
 	public static String yammer_connector_description;
 
@@ -410,6 +446,9 @@ public class ConnectorsMessages extends NLS {
 
 	public static String hazelcast_connector_title;
 	public static String hazelcast_connector_description;
+
+	public static String netty4_connector_title;
+	public static String netty4_connector_description;
 
 	public static String ref_connector_title;
 	public static String ref_connector_description;

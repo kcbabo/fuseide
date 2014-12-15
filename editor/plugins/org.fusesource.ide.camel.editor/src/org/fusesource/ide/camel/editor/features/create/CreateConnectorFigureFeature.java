@@ -34,6 +34,7 @@ import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.ConnectorsMessages;
 import org.fusesource.ide.camel.editor.editor.RiderDesignEditor;
 import org.fusesource.ide.camel.model.AbstractNode;
+import org.fusesource.ide.camel.model.ConnectorEndpoint;
 import org.fusesource.ide.camel.model.Endpoint;
 import org.fusesource.ide.camel.model.connectors.Connector;
 import org.fusesource.ide.camel.model.connectors.ConnectorDependency;
@@ -43,7 +44,7 @@ import org.fusesource.ide.camel.model.connectors.ConnectorDependency;
  */
 public class CreateConnectorFigureFeature extends CreateFigureFeature<Endpoint> {
     
-    private final Endpoint endpoint;
+    private final ConnectorEndpoint endpoint;
     protected final Connector connector;
     
     /**
@@ -54,7 +55,7 @@ public class CreateConnectorFigureFeature extends CreateFigureFeature<Endpoint> 
      */
     public CreateConnectorFigureFeature(IFeatureProvider fp, Connector connector) {
         super(fp, getDisplayText(connector.getId()), getDescription(connector.getId()), Endpoint.class);
-        this.endpoint = new Endpoint(String.format("%s:", connector.getProtocols().get(0).getPrefix())); // we use the first found protocol string
+        this.endpoint = new ConnectorEndpoint(String.format("%s:", connector.getProtocols().get(0).getPrefix())); // we use the first found protocol string
         setExemplar(this.endpoint);
         this.connector = connector;
     }
@@ -72,9 +73,9 @@ public class CreateConnectorFigureFeature extends CreateFigureFeature<Endpoint> 
      */
     @Override
     protected AbstractNode createNode() {
-        return new Endpoint(this.endpoint);
+        return new ConnectorEndpoint(this.endpoint);
     }
-    
+        
     /**
      * determines the label to display for that palette entry
      * 

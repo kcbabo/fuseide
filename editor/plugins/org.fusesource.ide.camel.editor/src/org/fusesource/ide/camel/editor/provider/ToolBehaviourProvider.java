@@ -81,8 +81,43 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
     
     static {
         CONNECTORS_WHITELIST = new ArrayList<String>();
+        
         CONNECTORS_WHITELIST.add("file");
         CONNECTORS_WHITELIST.add("jms");
+        CONNECTORS_WHITELIST.add("atom");
+        CONNECTORS_WHITELIST.add("ftp");
+        CONNECTORS_WHITELIST.add("ftps");
+        CONNECTORS_WHITELIST.add("sftp");
+        CONNECTORS_WHITELIST.add("imap");
+        CONNECTORS_WHITELIST.add("imaps");
+        CONNECTORS_WHITELIST.add("nntp");
+        CONNECTORS_WHITELIST.add("pop3");
+        CONNECTORS_WHITELIST.add("pop3s");
+        CONNECTORS_WHITELIST.add("smtp");
+        CONNECTORS_WHITELIST.add("smtps");
+        CONNECTORS_WHITELIST.add("mina2");
+        CONNECTORS_WHITELIST.add("mqtt");
+        CONNECTORS_WHITELIST.add("mvel");
+        CONNECTORS_WHITELIST.add("netty");
+        CONNECTORS_WHITELIST.add("netty-http");
+        CONNECTORS_WHITELIST.add("netty4");
+        CONNECTORS_WHITELIST.add("netty4-http");
+        CONNECTORS_WHITELIST.add("cxf");
+        CONNECTORS_WHITELIST.add("cxfrs");
+        CONNECTORS_WHITELIST.add("cxfbean");
+        CONNECTORS_WHITELIST.add("activemq");
+        CONNECTORS_WHITELIST.add("ejb");
+        CONNECTORS_WHITELIST.add("infinispan");
+        CONNECTORS_WHITELIST.add("jgroups");
+        CONNECTORS_WHITELIST.add("quartz");
+        CONNECTORS_WHITELIST.add("quartz2");
+        CONNECTORS_WHITELIST.add("restlet");
+        CONNECTORS_WHITELIST.add("rss");
+        CONNECTORS_WHITELIST.add("sap-netweaver");
+        CONNECTORS_WHITELIST.add("xquery");
+        CONNECTORS_WHITELIST.add("servlet");
+        CONNECTORS_WHITELIST.add("language");
+        CONNECTORS_WHITELIST.add("sql");
         
         //CONNECTORS_WHITELIST.add("");
     }
@@ -275,10 +310,16 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
     public IPaletteCompartmentEntry[] getPalette() {
         List<IPaletteCompartmentEntry> ret = new ArrayList<IPaletteCompartmentEntry>();
 
+        
+        // the folder for component types
+        PaletteCompartmentEntry compartmentEntryComponents = new PaletteCompartmentEntry(Messages.connectorsDrawerTitle, null);
+        ret.add(compartmentEntryComponents);
+        compartmentEntryComponents.setInitiallyOpen(true);
+        
         // the folder for endpoint types
         PaletteCompartmentEntry compartmentEntryEndpoints = new PaletteCompartmentEntry(Messages.endpointsDrawerTitle, null);
         ret.add(compartmentEntryEndpoints);
-        compartmentEntryEndpoints.setInitiallyOpen(true);
+        compartmentEntryEndpoints.setInitiallyOpen(false);
 
         // the folder for routing types
         PaletteCompartmentEntry compartmentEntryRouting = new PaletteCompartmentEntry(Messages.routingDrawerTitle, null);
@@ -307,7 +348,10 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
                 if (octe.getCreateFeature() instanceof PaletteCategoryItemProvider) {
                     PaletteCategoryItemProvider pcit = (PaletteCategoryItemProvider) octe.getCreateFeature();
                     switch (pcit.getCategoryType()) {
-                        case CONNECTORS:
+                        case COMPONENTS:
+                            compartmentEntryComponents.addToolEntry(toolEntry);
+                            break;
+                        case ENDPOINTS:
                             compartmentEntryEndpoints.addToolEntry(toolEntry);
                             break;
                         case ROUTING:

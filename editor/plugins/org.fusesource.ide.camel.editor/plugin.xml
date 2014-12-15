@@ -295,4 +295,10 @@
          </enabledWhen>
       </page>
    </extension>
+   <extension
+         point="org.fusesource.ide.editor.paletteContributor">
+      <PaletteContribution
+            class="org.fusesource.ide.camel.editor.provider.ActiveMQPaletteEntry">
+      </PaletteContribution>
+   </extension>
 </plugin>
