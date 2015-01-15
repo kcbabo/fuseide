@@ -33,6 +33,8 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.fusesource.ide.camel.editor.AbstractNodes;
+import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameter;
+import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameterKind;
 import org.fusesource.ide.camel.editor.utils.DiagramUtils;
 import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.Endpoint;
@@ -49,9 +51,11 @@ public class FileBindingSection extends AbstractPropertySection {
     private Composite parent;
     
     private Text txtPath;
+    private Text txtPattern;
     private Button btnPathBrowser;
     
     private Endpoint selectedEP;
+    private CamelComponentUriParameter patternParam = new CamelComponentUriParameter("include", "Expression", null, CamelComponentUriParameterKind.CONSUMER);
     
     /**
      * 
@@ -83,6 +87,8 @@ public class FileBindingSection extends AbstractPropertySection {
         if (n instanceof Endpoint) {
             this.selectedEP = (Endpoint)n;
             txtPath.setText(getPath(this.selectedEP.getUri()));
+            String patternString = PropertiesUtils.getPropertyFromUri(selectedEP, patternParam);
+            if (patternString != null) txtPattern.setText(patternString != null && patternString.trim().length() > 0 ? patternString : "");
             form.setText("Filesystem Configuration - " + DiagramUtils.filterFigureLabel(selectedEP.getDisplayText()));
         } else {
             this.selectedEP = null;
@@ -142,6 +148,20 @@ public class FileBindingSection extends AbstractPropertySection {
                 }
             }
         });
+
+        l = toolkit.createLabel(sbody, "Filename Pattern:");
+        l.setLayoutData(new GridData());
+        
+        this.txtPattern = toolkit.createText(sbody, "", SWT.BORDER | SWT.LEFT);
+        this.txtPattern.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+        this.txtPattern.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                String pattern = txtPattern.getText();
+                updatePattern(pattern);
+            }
+        });
+
         
         form.layout();
     }
@@ -156,7 +176,15 @@ public class FileBindingSection extends AbstractPropertySection {
         if (oldValue.equals(newValue)) return;
         selectedEP.setUri(selectedEP.getUri().trim().equals("file:") ? selectedEP.getUri() + newValue : selectedEP.getUri().replaceFirst(oldValue, newValue));
     }
-    
+
+    /**
+     * 
+     * @param pattern
+     */
+    protected void updatePattern(String pattern) {
+        PropertiesUtils.updateURIParams(selectedEP, patternParam, pattern);
+    }
+
     /**
      * 
      * @param uri

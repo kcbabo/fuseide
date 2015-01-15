@@ -91,6 +91,7 @@ public final class CamelComponentUtils {
     
     public static boolean isNumberProperty(CamelComponentUriParameter p) {
         return  p.getType().equalsIgnoreCase("int") || 
+                p.getType().equalsIgnoreCase("Integer") ||
                 p.getType().equalsIgnoreCase("java.lang.Integer") || 
                 p.getType().equalsIgnoreCase("long") || 
                 p.getType().equalsIgnoreCase("java.lang.Long") || 

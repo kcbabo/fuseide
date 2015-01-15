@@ -11,7 +11,6 @@
 package org.fusesource.ide.camel.editor.propertysheet;
 
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,17 +19,17 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.JavaConventions;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.corext.util.JavaConventionsUtil;
+import org.eclipse.jdt.core.search.IJavaSearchConstants;
+import org.eclipse.jdt.core.search.IJavaSearchScope;
+import org.eclipse.jdt.core.search.SearchEngine;
+import org.eclipse.jdt.internal.core.SourceType;
+import org.eclipse.jdt.internal.ui.dialogs.FilteredTypesSelectionDialog;
 import org.eclipse.jdt.internal.ui.wizards.NewClassCreationWizard;
 import org.eclipse.jdt.ui.wizards.NewClassWizardPage;
 import org.eclipse.jface.viewers.ISelection;
@@ -52,6 +51,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -65,7 +65,6 @@ import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.fusesource.ide.camel.editor.AbstractNodes;
 import org.fusesource.ide.camel.editor.Activator;
-import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponent;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameter;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameterKind;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUtils;
@@ -117,11 +116,6 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         Object o = Selections.getFirstSelection(selection);
         AbstractNode n = AbstractNodes.toAbstractNode(o);
         
-        if (n != null && n.equals(selectedEP)) {
-            // same endpoint - no need to do something
-            return;
-        }
-        
         if (n instanceof Endpoint) {
             this.selectedEP = (Endpoint) n;
             form.setText("Advanced Properties - " + DiagramUtils.filterFigureLabel(selectedEP.getDisplayText()));
@@ -147,41 +141,6 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
     }
     
     /**
-     * updates the uri for the changed value
-     * 
-     * @param p
-     * @param value
-     */
-    protected void updateURI(CamelComponentUriParameter p, Object value) {
-//        if (p.getName().equals(EndpointPropertyModel.PROTOCOL_PROPERTY) && CamelComponentUtils.isChoiceProperty(p)) {
-//            String oldProtocol = getUsedProtocol();
-//            if (oldProtocol.equalsIgnoreCase(value.toString()) == false) {
-//                // protocol changed - update uri
-//                selectedEP.setUri(selectedEP.getUri().replaceFirst(oldProtocol, value.toString()));
-//            }
-//        } else {
-            String val = getPropertyFromUri(p);
-            if (val != null) {
-                selectedEP.setUri(selectedEP.getUri().replaceFirst(String.format("%s=%s", p.getName(), val), String.format("%s=%s", p.getName(), value.toString())));
-            } else {
-                String newUri = selectedEP.getUri();
-                if (selectedEP.getUri().indexOf('?') == -1) {
-                    newUri += '?';
-                }
-                if (selectedEP.getUri().indexOf('=') != -1) {
-                    newUri += '&';
-                }
-                newUri += String.format("%s=%s", p.getName(), value.toString());
-                selectedEP.setUri(newUri);
-            }
-//        }
-    }
-    
-    protected String getUsedProtocol() {
-        return selectedEP.getUri().substring(0, selectedEP.getUri().indexOf(':'));
-    }
-
-    /**
      * 
      * @param props
      * @param page
@@ -206,7 +165,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
             
             if (CamelComponentUtils.isBooleanProperty(prop)) {
                 Button checkBox = toolkit.createButton(page, "", SWT.CHECK | SWT.BORDER);
-                Boolean b = (Boolean)getTypedPropertyFromUri(prop);
+                Boolean b = (Boolean)PropertiesUtils.getTypedPropertyFromUri(selectedEP, prop);
                 checkBox.setSelection(b);
                 checkBox.addSelectionListener(new SelectionAdapter() {
                     /* (non-Javadoc)
@@ -214,24 +173,24 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                      */
                     @Override
                     public void widgetSelected(SelectionEvent e) {
-                        updateURI(prop, ((Button)e.getSource()).getSelection());
+                        PropertiesUtils.updateURIParams(selectedEP, prop, ((Button)e.getSource()).getSelection());
                     }
                 });
-                checkBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                checkBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
                 
             } else if (CamelComponentUtils.isTextProperty(prop)) {
-                Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                Text txtField = toolkit.createText(page, PropertiesUtils.getPropertyFromUri(selectedEP, prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
                     public void modifyText(ModifyEvent e) {
                         Text txt = (Text)e.getSource();
-                        updateURI(prop, txt.getText());
+                        PropertiesUtils.updateURIParams(selectedEP, prop, txt.getText());
                     }
                 });
-                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
                 
             } else if (CamelComponentUtils.isNumberProperty(prop)) {
-                Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.RIGHT);
+                Text txtField = toolkit.createText(page, PropertiesUtils.getPropertyFromUri(selectedEP, prop), SWT.SINGLE | SWT.BORDER | SWT.RIGHT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
                     public void modifyText(ModifyEvent e) {
@@ -245,10 +204,10 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                             }
                         }
                         txt.setBackground(ColorConstants.white);
-                        updateURI(prop, txt.getText());
+                        PropertiesUtils.updateURIParams(selectedEP, prop, txt.getText());
                     }
                 });
-                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
                 
             } else if (CamelComponentUtils.isChoiceProperty(prop)) {
                 CCombo choiceCombo = new CCombo(page, SWT.BORDER | SWT.FLAT | SWT.READ_ONLY | SWT.SINGLE);
@@ -256,7 +215,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 choiceCombo.setEditable(false);
                 choiceCombo.setItems(CamelComponentUtils.getChoices(prop));
                 for (int i=0; i < choiceCombo.getItems().length; i++) {
-                    if (choiceCombo.getItem(i).equalsIgnoreCase(getPropertyFromUri(prop))) {
+                    if (choiceCombo.getItem(i).equalsIgnoreCase(PropertiesUtils.getPropertyFromUri(selectedEP, prop))) {
                         choiceCombo.select(i);
                         break;
                     }
@@ -268,21 +227,21 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     @Override
                     public void widgetSelected(SelectionEvent e) {
                         CCombo choice = (CCombo)e.getSource();
-                        updateURI(prop, choice.getText());
+                        PropertiesUtils.updateURIParams(selectedEP, prop, choice.getText());
                     }
                 });
-                choiceCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                choiceCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
                 
             } else if (CamelComponentUtils.isFileProperty(prop)) {
-                final Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                final Text txtField = toolkit.createText(page, PropertiesUtils.getPropertyFromUri(selectedEP, prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
                     public void modifyText(ModifyEvent e) {
                         Text txt = (Text)e.getSource();
-                        updateURI(prop, txt.getText());
+                        PropertiesUtils.updateURIParams(selectedEP, prop, txt.getText());
                     }
                 });
-                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
                 
                 Button btn_browse = toolkit.createButton(page, "...", SWT.BORDER | SWT.PUSH);
                 btn_browse.addSelectionListener(new SelectionAdapter() {
@@ -301,15 +260,15 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
                 
             } else if (CamelComponentUtils.isFolderProperty(prop)) {
-                final Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                final Text txtField = toolkit.createText(page, PropertiesUtils.getPropertyFromUri(selectedEP, prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
                     public void modifyText(ModifyEvent e) {
                         Text txt = (Text)e.getSource();
-                        updateURI(prop, txt.getText());
+                        PropertiesUtils.updateURIParams(selectedEP, prop, txt.getText());
                     }
                 });
-                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
                 
                 Button btn_browse = toolkit.createButton(page, "...", SWT.BORDER | SWT.PUSH);
                 btn_browse.addSelectionListener(new SelectionAdapter() {
@@ -328,30 +287,30 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 
             } else if (CamelComponentUtils.isExpressionProperty(prop)) {
-                Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                Text txtField = toolkit.createText(page, PropertiesUtils.getPropertyFromUri(selectedEP, prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
                     public void modifyText(ModifyEvent e) {
                         Text txt = (Text)e.getSource();
-                        updateURI(prop, txt.getText());
+                        PropertiesUtils.updateURIParams(selectedEP, prop, txt.getText());
                     }
                 });
-                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
                 
             } else {
                 // must be some class as all other options were missed
-                final Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                final Text txtField = toolkit.createText(page, PropertiesUtils.getPropertyFromUri(selectedEP, prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
                     public void modifyText(ModifyEvent e) {
                         Text txt = (Text)e.getSource();
-                        updateURI(prop, txt.getText());
+                        PropertiesUtils.updateURIParams(selectedEP, prop, txt.getText());
                     }
                 });
                 txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
                 
-                Button btn_browse = toolkit.createButton(page, "...", SWT.BORDER | SWT.PUSH);
-                btn_browse.addSelectionListener(new SelectionAdapter() {
+                Button btn_create = toolkit.createButton(page, " + ", SWT.BORDER | SWT.PUSH);
+                btn_create.addSelectionListener(new SelectionAdapter() {
                     /* (non-Javadoc)
                      * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
                      */
@@ -360,7 +319,11 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                         URLClassLoader child = CamelComponentUtils.getProjectClassLoader();
                         Class classToLoad = null;
                         try {
-                            classToLoad = child.loadClass(prop.getType());
+                            if (prop.getType().indexOf("<")!=-1) {
+                                classToLoad = child.loadClass(prop.getType().substring(0,  prop.getType().indexOf("<")));
+                            } else {
+                                classToLoad = child.loadClass(prop.getType());   
+                            }
                         } catch (ClassNotFoundException ex) {
                             Activator.getLogger().warning("Cannot find class " + prop.getType() + " on classpath.", ex);
                             return;
@@ -391,7 +354,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                                     break;
                                 }
                                 if (fragroot != null) wp.setPackageFragmentRoot(fragroot, true);   
-                                wp.setPackageFragment(getPackage(javaProject, fragroot), true);
+                                wp.setPackageFragment(PropertiesUtils.getPackage(javaProject, fragroot), true);
                             }
                         } catch (Exception ex) {
                             Activator.getLogger().error(ex);
@@ -402,73 +365,56 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                         }
                     }
                 });
+                btn_create.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+                
+                Button btn_browse = toolkit.createButton(page, "...", SWT.BORDER | SWT.PUSH);
+                btn_browse.addSelectionListener(new SelectionAdapter() {
+                    /* (non-Javadoc)
+                     * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+                     */
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        URLClassLoader child = CamelComponentUtils.getProjectClassLoader();
+                        Class classToLoad = null;
+                        try {
+                            classToLoad = child.loadClass(prop.getType());
+                        } catch (ClassNotFoundException ex) {
+                            Activator.getLogger().warning("Cannot find class " + prop.getType() + " on classpath.", ex);
+                            return;
+                        }
+                        
+                        IProject project = Activator.getDiagramEditor().getCamelContextFile().getProject();
+                        try {
+                            IJavaProject javaProject = (IJavaProject)project.getNature(JavaCore.NATURE_ID);
+                            IJavaElement[] elements=new IJavaElement[]{javaProject};
+                            IJavaSearchScope scope=SearchEngine.createJavaSearchScope(elements);
+                            
+                            FilteredTypesSelectionDialog dlg = new FilteredTypesSelectionDialog(Display.getDefault().getActiveShell(), 
+                                    false, 
+                                    PlatformUI.getWorkbench().getProgressService(), 
+                                    scope, 
+                                    IJavaSearchConstants.CLASS);
+                            
+                            if (Window.OK == dlg.open()) {
+                                Object o = dlg.getFirstResult();
+                                if (o instanceof SourceType) {
+                                    txtField.setText(((SourceType)o).getFullyQualifiedName());
+                                }
+                            }
+                        } catch (Exception ex) {
+                            Activator.getLogger().error(ex);
+                        }
+                    }
+                });
                 btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
             }
         }
     }
     
-    /**
-     * Checks if the package field has to be pre-filled in this page and returns the package
-     * fragment to be used for that. The package fragment has the name of the project if the source
-     * folder does not contain any package and if the project name is a valid package name. If the
-     * source folder contains exactly one package then the name of that package is used as the
-     * package fragment's name. <code>null</code> is returned if none of the above is applicable.
-     * 
-     * @param javaProject the containing Java project of the selection used to initialize this page
-     * 
-     * @return the package fragment to be pre-filled in this page or <code>null</code> if no
-     *         suitable package can be suggested for the given project
-     * 
-     * @since 3.9
-     */
-    private IPackageFragment getPackage(IJavaProject javaProject, final IPackageFragmentRoot pkgFragmentRoot) {
-        String packName= null;
-        IJavaElement[] packages= null;
-        try {
-            if (pkgFragmentRoot != null && pkgFragmentRoot.exists()) {
-                packages= pkgFragmentRoot.getChildren();
-                if (packages.length == 1) { // only default package -> use Project name
-                    packName= javaProject.getElementName();
-                    // validate package name
-                    IStatus status= validatePackageName(packName, javaProject);
-                    if (status.getSeverity() == IStatus.OK) {
-                        return pkgFragmentRoot.getPackageFragment(packName);
-                    }
-                } else {
-                    int noOfPackages= 0;
-                    IPackageFragment thePackage= null;
-                    for (final IJavaElement pack : packages) {
-                        IPackageFragment pkg= (IPackageFragment) pack;
-                        // ignoring empty parent packages and default package
-                        if ((!pkg.hasSubpackages() || pkg.hasChildren()) && !pkg.isDefaultPackage()) {
-                            noOfPackages++;
-                            thePackage= pkg;
-                            if (noOfPackages > 1) {
-                                return null;
-                            }
-                        }
-                    }
-                    if (noOfPackages == 1) { // use package name
-                        packName= thePackage.getElementName();
-                        return pkgFragmentRoot.getPackageFragment(packName);
-                    }
-                }
-            }
-        } catch (JavaModelException e) {
-            // fall through
-        }
-        return null;
-    }
 
-    private static IStatus validatePackageName(String text, IJavaProject project) {
-        if (project == null || !project.exists()) {
-            return JavaConventions.validatePackageName(text, JavaCore.VERSION_1_3, JavaCore.VERSION_1_3);
-        }
-        return JavaConventionsUtil.validatePackageName(text, project);
-    }
         
     private void createCommonsTab(CTabFolder folder) {
-        List<CamelComponentUriParameter> props = getPropertiesFor(CamelComponentUriParameterKind.BOTH);
+        List<CamelComponentUriParameter> props = PropertiesUtils.getPropertiesFor(selectedEP, CamelComponentUriParameterKind.BOTH);
 
         if (props.isEmpty()) return;
         
@@ -476,7 +422,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         commonTab.setText("General");
 
         Composite page = toolkit.createComposite(folder);
-        page.setLayout(new GridLayout(3, false));
+        page.setLayout(new GridLayout(4, false));
                 
         generateTabContents(props, page);
 
@@ -484,7 +430,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
     }
 
     private void createConsumerTab(CTabFolder folder) {
-        List<CamelComponentUriParameter> props = getPropertiesFor(CamelComponentUriParameterKind.CONSUMER);
+        List<CamelComponentUriParameter> props = PropertiesUtils.getPropertiesFor(selectedEP, CamelComponentUriParameterKind.CONSUMER);
         
         if (props.isEmpty()) return;
         
@@ -492,7 +438,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         consumerTab.setText("Consumer");
 
         Composite page = toolkit.createComposite(folder);
-        page.setLayout(new GridLayout(3, false));
+        page.setLayout(new GridLayout(4, false));
                 
         generateTabContents(props, page);        
         
@@ -500,7 +446,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
     }
 
     private void createProducerTab(CTabFolder folder) {
-        List<CamelComponentUriParameter> props = getPropertiesFor(CamelComponentUriParameterKind.PRODUCER);
+        List<CamelComponentUriParameter> props = PropertiesUtils.getPropertiesFor(selectedEP, CamelComponentUriParameterKind.PRODUCER);
         
         if (props.isEmpty()) return;
         
@@ -508,7 +454,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         producerTab.setText("Producer");
         
         Composite page = toolkit.createComposite(folder);
-        page.setLayout(new GridLayout(3, false));
+        page.setLayout(new GridLayout(4, false));
                 
         generateTabContents(props, page);
         
@@ -552,67 +498,5 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         
         form.layout();
         tabFolder.setSelection(0);
-    }
-
-    /**
-     * 
-     * @param kind
-     * @return
-     */
-    protected List<CamelComponentUriParameter> getPropertiesFor(CamelComponentUriParameterKind kind) {
-        ArrayList<CamelComponentUriParameter> result = new ArrayList<CamelComponentUriParameter>();
-
-        if (selectedEP != null && selectedEP.getUri() != null) {
-            int protocolSeparatorIdx = selectedEP.getUri().indexOf(":");
-            if (protocolSeparatorIdx != -1) {
-                CamelComponent componentModel = CamelComponentUtils.getComponentModel(selectedEP.getUri().substring(0, protocolSeparatorIdx));
-                if (componentModel != null) {
-                    for (CamelComponentUriParameter p : componentModel.getUriParameters()) {
-                        if (p.getKind().equals(kind)) {
-                            result.add(p);
-                        }
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * 
-     * @param p
-     * @return
-     */
-    protected String getPropertyFromUri(CamelComponentUriParameter p) {
-        int idx = selectedEP.getUri().indexOf(p.getName() + "=");
-        if (idx != -1) {
-            return selectedEP.getUri().substring(idx + (p.getName() + "=").length(),
-                    selectedEP.getUri().indexOf('&', idx + 1) != -1 ? selectedEP.getUri().indexOf('&', idx + 1) : selectedEP.getUri().length());
-        }
-        return null;
-    }
-
-    /**
-     * 
-     * @param p
-     * @return
-     */
-    protected Object getTypedPropertyFromUri(CamelComponentUriParameter p) {
-        String val = getPropertyFromUri(p);
-
-        if (CamelComponentUtils.isBooleanProperty(p)) {
-            return Boolean.parseBoolean(val);
-        }
-
-        if (CamelComponentUtils.isTextProperty(p)) {
-            return val;
-        }
-
-        if (CamelComponentUtils.isNumberProperty(p)) {
-            return val;
-        }
-
-        return null;
     }
 }
