@@ -16,7 +16,6 @@ import java.util.List;
 import org.eclipse.graphiti.features.ICreateFeature;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.tb.IImageDecorator;
-import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.features.create.CreateEndpointFigureFeature;
 import org.fusesource.ide.camel.editor.provider.PaletteCategoryItemProvider.CATEGORY_TYPE;
 import org.fusesource.ide.camel.model.Endpoint;
@@ -40,7 +39,7 @@ public class ActiveMQPaletteEntry implements ICustomPaletteEntry {
      */
     @Override
     public ICreateFeature newCreateFeature(IFeatureProvider fp) {
-        return new CreateEndpointFigureFeature(null, "ActiveMQ", "Creates an ActiveMQ connector endpoint...", new Endpoint("activemq:queue:foo"));
+        return new CreateEndpointFigureFeature(fp, "ActiveMQ", "Creates an ActiveMQ connector endpoint...", new Endpoint("activemq:queue:foo"));
     }
 
     /* (non-Javadoc)
