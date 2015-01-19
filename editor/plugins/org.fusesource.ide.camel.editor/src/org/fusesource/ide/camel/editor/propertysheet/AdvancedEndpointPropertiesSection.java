@@ -309,6 +309,22 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 });
                 txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
                 
+                URLClassLoader child = CamelComponentUtils.getProjectClassLoader();
+                Class classToLoad;
+                try {
+                    if (prop.getType().indexOf("<")!=-1) {
+                        classToLoad = child.loadClass(prop.getType().substring(0,  prop.getType().indexOf("<")));
+                    } else {
+                        classToLoad = child.loadClass(prop.getType());   
+                    }
+                } catch (ClassNotFoundException ex) {
+                    Activator.getLogger().warning("Cannot find class " + prop.getType() + " on classpath.", ex);
+                    classToLoad = null;
+                }
+                
+                final IProject project = Activator.getDiagramEditor().getCamelContextFile().getProject();
+                final Class fClass = classToLoad;
+                
                 Button btn_create = toolkit.createButton(page, " + ", SWT.BORDER | SWT.PUSH);
                 btn_create.addSelectionListener(new SelectionAdapter() {
                     /* (non-Javadoc)
@@ -316,29 +332,15 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                      */
                     @Override
                     public void widgetSelected(SelectionEvent e) {
-                        URLClassLoader child = CamelComponentUtils.getProjectClassLoader();
-                        Class classToLoad = null;
-                        try {
-                            if (prop.getType().indexOf("<")!=-1) {
-                                classToLoad = child.loadClass(prop.getType().substring(0,  prop.getType().indexOf("<")));
-                            } else {
-                                classToLoad = child.loadClass(prop.getType());   
-                            }
-                        } catch (ClassNotFoundException ex) {
-                            Activator.getLogger().warning("Cannot find class " + prop.getType() + " on classpath.", ex);
-                            return;
-                        }
-                        
-                        IProject project = Activator.getDiagramEditor().getCamelContextFile().getProject();
                         NewClassCreationWizard wiz = new NewClassCreationWizard();
                         wiz.addPages();
                         wiz.init(PlatformUI.getWorkbench(), null);
                         NewClassWizardPage wp = (NewClassWizardPage)wiz.getStartingPage();
                         WizardDialog wd = new WizardDialog(e.display.getActiveShell(), wiz);
-                        if (classToLoad.isInterface()) {
-                            wp.setSuperInterfaces(Arrays.asList(classToLoad.getName()), true);
+                        if (fClass.isInterface()) {
+                            wp.setSuperInterfaces(Arrays.asList(fClass.getName()), true);
                         } else {
-                            wp.setSuperClass(classToLoad.getName(), true);
+                            wp.setSuperClass(fClass.getName(), true);
                         }
                         wp.setAddComments(true, true);
                         IPackageFragmentRoot fragroot = null;
@@ -366,6 +368,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     }
                 });
                 btn_create.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+                btn_create.setEnabled(fClass != null);
                 
                 Button btn_browse = toolkit.createButton(page, "...", SWT.BORDER | SWT.PUSH);
                 btn_browse.addSelectionListener(new SelectionAdapter() {
@@ -374,16 +377,6 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                      */
                     @Override
                     public void widgetSelected(SelectionEvent e) {
-                        URLClassLoader child = CamelComponentUtils.getProjectClassLoader();
-                        Class classToLoad = null;
-                        try {
-                            classToLoad = child.loadClass(prop.getType());
-                        } catch (ClassNotFoundException ex) {
-                            Activator.getLogger().warning("Cannot find class " + prop.getType() + " on classpath.", ex);
-                            return;
-                        }
-                        
-                        IProject project = Activator.getDiagramEditor().getCamelContextFile().getProject();
                         try {
                             IJavaProject javaProject = (IJavaProject)project.getNature(JavaCore.NATURE_ID);
                             IJavaElement[] elements=new IJavaElement[]{javaProject};
@@ -407,6 +400,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     }
                 });
                 btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+                btn_browse.setEnabled(fClass != null);
             }
         }
     }
