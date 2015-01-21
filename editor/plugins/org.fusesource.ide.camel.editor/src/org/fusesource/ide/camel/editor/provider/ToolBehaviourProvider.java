@@ -57,6 +57,8 @@ import org.fusesource.ide.camel.editor.features.create.CreateConnectorFigureFeat
 import org.fusesource.ide.camel.editor.features.custom.AddRouteFeature;
 import org.fusesource.ide.camel.editor.features.custom.DeleteAllEndpointBreakpointsFeature;
 import org.fusesource.ide.camel.editor.features.custom.SetEndpointBreakpointFeature;
+import org.fusesource.ide.camel.editor.provider.ext.ICustomPaletteEntry;
+import org.fusesource.ide.camel.editor.provider.ext.PaletteCategoryItemProvider;
 import org.fusesource.ide.camel.editor.provider.generated.AddNodeMenuFactory;
 import org.fusesource.ide.camel.editor.validation.ValidationFactory;
 import org.fusesource.ide.camel.editor.validation.ValidationResult;

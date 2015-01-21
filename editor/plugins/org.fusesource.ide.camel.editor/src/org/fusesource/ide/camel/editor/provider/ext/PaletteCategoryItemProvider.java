@@ -9,7 +9,7 @@
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
 
-package org.fusesource.ide.camel.editor.provider;
+package org.fusesource.ide.camel.editor.provider.ext;
 
 import org.fusesource.ide.camel.editor.Activator;
 

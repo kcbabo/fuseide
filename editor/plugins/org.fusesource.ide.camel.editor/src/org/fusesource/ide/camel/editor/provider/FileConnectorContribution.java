@@ -19,7 +19,8 @@ import org.eclipse.graphiti.tb.IImageDecorator;
 import org.eclipse.graphiti.tb.ImageDecorator;
 import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.features.create.CreateEndpointFigureFeature;
-import org.fusesource.ide.camel.editor.provider.PaletteCategoryItemProvider.CATEGORY_TYPE;
+import org.fusesource.ide.camel.editor.provider.ext.ICustomPaletteEntry;
+import org.fusesource.ide.camel.editor.provider.ext.PaletteCategoryItemProvider.CATEGORY_TYPE;
 import org.fusesource.ide.camel.model.Endpoint;
 import org.fusesource.ide.camel.model.connectors.ConnectorDependency;
 

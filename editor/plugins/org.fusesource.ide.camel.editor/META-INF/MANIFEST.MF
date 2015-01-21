@@ -8,6 +8,7 @@ Bundle-Vendor: %Bundle-Vendor
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: org.fusesource.ide.camel.editor,
  org.fusesource.ide.camel.editor.editor,
+ org.fusesource.ide.camel.editor.provider.ext,
  org.fusesource.ide.camel.editor.utils
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.ui;bundle-version="3.106.0",

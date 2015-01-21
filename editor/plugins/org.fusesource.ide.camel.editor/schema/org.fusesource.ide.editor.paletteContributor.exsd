@@ -55,7 +55,7 @@
                   
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry"/>
+                  <meta.attribute kind="java" basedOn=":org.fusesource.ide.camel.editor.provider.ext.ICustomPaletteEntry"/>
                </appinfo>
             </annotation>
          </attribute>
