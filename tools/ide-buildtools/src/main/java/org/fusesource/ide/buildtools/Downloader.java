@@ -173,8 +173,8 @@ public class Downloader {
     }
 
     public void run() throws Exception {
-//        downloadArchetypes();
-//        downloadXsds();
+        downloadArchetypes();
+        downloadXsds();
         downloadCamelComponentData();
     }
 
