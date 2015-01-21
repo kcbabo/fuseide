@@ -140,14 +140,14 @@ Export-Package: de.pdark.decentxml,
 Bundle-Activator: org.fusesource.ide.commons.Activator
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
- libs/camel-blueprint-2.13.2.jar,
- libs/camel-core-2.13.2.jar,
- libs/camel-spring-2.13.2.jar,
  libs/decentxml-1.4.jar,
  libs/spring-beans-3.2.9.RELEASE.jar,
  libs/spring-context-3.2.9.RELEASE.jar,
  libs/log4j-over-slf4j-1.7.5.jar,
  libs/slf4j-api-1.7.5.jar,
  libs/slf4j-simple-1.7.5.jar,
- libs/spring-core-3.2.9.RELEASE.jar
+ libs/spring-core-3.2.9.RELEASE.jar,
+ libs/camel-blueprint-2.14.0.jar,
+ libs/camel-core-2.14.0.jar,
+ libs/camel-spring-2.14.0.jar
 
