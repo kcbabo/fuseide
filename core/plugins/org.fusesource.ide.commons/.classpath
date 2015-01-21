@@ -8,10 +8,10 @@
 	<classpathentry exported="true" kind="lib" path="libs/spring-beans-3.2.9.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/spring-context-3.2.9.RELEASE.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry exported="true" kind="lib" path="libs/camel-blueprint-2.14.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/camel-core-2.14.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/camel-spring-2.14.0.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="libs/camel-blueprint-2.14.0.jar"/>
-	<classpathentry kind="lib" path="libs/camel-core-2.14.0.jar"/>
-	<classpathentry kind="lib" path="libs/camel-spring-2.14.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
