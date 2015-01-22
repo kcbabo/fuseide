@@ -27,7 +27,7 @@ public interface ICustomPaletteEntry {
      * 
      * @return
      */
-    public PaletteCategoryItemProvider.CATEGORY_TYPE getPaletteCategory();
+    public String getPaletteCategory();
     
     /**
     * @param fp the feature provider

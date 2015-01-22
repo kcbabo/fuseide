@@ -14,6 +14,7 @@ package org.fusesource.ide.camel.editor.provider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -79,6 +80,7 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
 
     private static final String PALETTE_ENTRY_PROVIDER_EXT_POINT_ID = "org.fusesource.ide.editor.paletteContributor";
 
+    private static HashMap<ICreateFeature, ICustomPaletteEntry> paletteItemExtensions = new HashMap<ICreateFeature, ICustomPaletteEntry>();
     private static final ArrayList<String> CONNECTORS_WHITELIST;
     
     static {
@@ -343,13 +345,22 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
         ret.add(compartmentEntryMisc);
         compartmentEntryMisc.setInitiallyOpen(false);
 
+        HashMap<String, PaletteCompartmentEntry> userdefinedEntries = new HashMap<String, PaletteCompartmentEntry>();
+        
         ArrayList<IToolEntry> paletteItems = getAggregatedToolEntries();
         for (IToolEntry toolEntry : paletteItems) {
             if (toolEntry instanceof ObjectCreationToolEntry) {
                 ObjectCreationToolEntry octe = (ObjectCreationToolEntry) toolEntry;
                 if (octe.getCreateFeature() instanceof PaletteCategoryItemProvider) {
-                    PaletteCategoryItemProvider pcit = (PaletteCategoryItemProvider) octe.getCreateFeature();
-                    switch (pcit.getCategoryType()) {
+                    PaletteCategoryItemProvider.CATEGORY_TYPE pcit = null;
+                    String catname = null;
+                    if (paletteItemExtensions.containsKey(octe.getCreateFeature())) {
+                    	catname = paletteItemExtensions.get(octe.getCreateFeature()).getPaletteCategory();
+                    	pcit = PaletteCategoryItemProvider.CATEGORY_TYPE.getCategoryType(paletteItemExtensions.get(octe.getCreateFeature()).getPaletteCategory());
+                    } else {
+                    	pcit = ((PaletteCategoryItemProvider)octe.getCreateFeature()).getCategoryType();
+                    }
+                    switch (pcit) {
                         case COMPONENTS:
                             compartmentEntryComponents.addToolEntry(toolEntry);
                             break;
@@ -368,6 +379,15 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
                         case MISCELLANEOUS:
                             compartmentEntryMisc.addToolEntry(toolEntry);
                             break;
+                        case USER_DEFINED:
+                        	if (catname != null && userdefinedEntries.containsKey(catname) == false) {
+                        		PaletteCompartmentEntry def = new PaletteCompartmentEntry(catname, null);
+                        		def.addToolEntry(toolEntry);
+                        		def.setInitiallyOpen(false);
+                        		ret.add(def);
+                        		userdefinedEntries.put(catname, def);
+                        	}
+                        	break;
                         case NONE:
                         default: // do not add those items
                             break;
@@ -424,6 +444,7 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
                     ICreateFeature cf = pe.newCreateFeature(getFeatureProvider());
                     IToolEntry te = new ObjectCreationToolEntry(cf.getName(), cf.getDescription(), cf.getCreateImageId(), cf.getCreateLargeImageId(), cf);
                     entries.add(te);
+                    paletteItemExtensions.put(cf, pe);
                 }
             }
         } catch (CoreException ex) {

@@ -18,7 +18,7 @@ import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.tb.IImageDecorator;
 import org.fusesource.ide.camel.editor.features.create.ext.CreateEndpointFigureFeature;
 import org.fusesource.ide.camel.editor.provider.ext.ICustomPaletteEntry;
-import org.fusesource.ide.camel.editor.provider.ext.PaletteCategoryItemProvider.CATEGORY_TYPE;
+import org.fusesource.ide.camel.editor.provider.ext.PaletteCategoryItemProvider;
 import org.fusesource.ide.camel.model.Endpoint;
 import org.fusesource.ide.camel.model.connectors.ConnectorDependency;
 
@@ -27,13 +27,13 @@ import org.fusesource.ide.camel.model.connectors.ConnectorDependency;
  */
 public class ActiveMQPaletteEntry implements ICustomPaletteEntry {
 
-    /* (non-Javadoc)
-     * @see org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry#getPaletteCategory()
-     */
-    @Override
-    public CATEGORY_TYPE getPaletteCategory() {
-        return CATEGORY_TYPE.COMPONENTS;
-    }
+	/* (non-Javadoc)
+	 * @see org.fusesource.ide.camel.editor.provider.ext.ICustomPaletteEntry#getPaletteCategory()
+	 */
+	@Override
+	public String getPaletteCategory() {
+		return PaletteCategoryItemProvider.CATEGORY_TYPE.COMPONENTS.name();
+	}
 
     /* (non-Javadoc)
      * @see org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry#newCreateFeature(org.eclipse.graphiti.features.IFeatureProvider)
