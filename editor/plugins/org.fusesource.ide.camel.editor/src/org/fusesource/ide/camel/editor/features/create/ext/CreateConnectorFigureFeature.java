@@ -8,7 +8,7 @@
  * Contributors:
  *     Red Hat, Inc. - initial API and implementation
  ******************************************************************************/
-package org.fusesource.ide.camel.editor.features.create;
+package org.fusesource.ide.camel.editor.features.create.ext;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

@@ -53,7 +53,7 @@ import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.EditorMessages;
 import org.fusesource.ide.camel.editor.Messages;
 import org.fusesource.ide.camel.editor.editor.RiderDesignEditor;
-import org.fusesource.ide.camel.editor.features.create.CreateConnectorFigureFeature;
+import org.fusesource.ide.camel.editor.features.create.ext.CreateConnectorFigureFeature;
 import org.fusesource.ide.camel.editor.features.custom.AddRouteFeature;
 import org.fusesource.ide.camel.editor.features.custom.DeleteAllEndpointBreakpointsFeature;
 import org.fusesource.ide.camel.editor.features.custom.SetEndpointBreakpointFeature;

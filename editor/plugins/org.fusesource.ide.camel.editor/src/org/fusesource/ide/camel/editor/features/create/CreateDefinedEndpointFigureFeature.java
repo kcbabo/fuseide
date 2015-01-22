@@ -12,6 +12,7 @@
 package org.fusesource.ide.camel.editor.features.create;
 
 import org.eclipse.graphiti.features.IFeatureProvider;
+import org.fusesource.ide.camel.editor.features.create.ext.CreateEndpointFigureFeature;
 import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.DefinedEndpoint;
 import org.fusesource.ide.camel.model.Endpoint;
