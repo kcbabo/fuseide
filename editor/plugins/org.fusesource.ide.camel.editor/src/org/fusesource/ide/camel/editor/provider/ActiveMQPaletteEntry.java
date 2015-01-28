@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.graphiti.features.ICreateFeature;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.tb.IImageDecorator;
+import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.features.create.ext.CreateEndpointFigureFeature;
 import org.fusesource.ide.camel.editor.provider.ext.ICustomPaletteEntry;
 import org.fusesource.ide.camel.editor.provider.ext.PaletteCategoryItemProvider;
@@ -77,6 +78,11 @@ public class ActiveMQPaletteEntry implements ICustomPaletteEntry {
         dep.setGroupId("org.apache.activemq");
         dep.setArtifactId("activemq-camel");
         dep.setVersion("5.6.0");
+        deps.add(dep);
+        dep = new ConnectorDependency();
+        dep.setGroupId("org.apache.camel");
+        dep.setArtifactId("camel-jms");
+        dep.setVersion(Activator.getDefault().getCamelVersion());
         deps.add(dep);
         return deps;
     }

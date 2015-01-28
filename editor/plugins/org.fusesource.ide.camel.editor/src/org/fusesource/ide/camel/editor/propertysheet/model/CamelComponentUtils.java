@@ -277,7 +277,6 @@ public final class CamelComponentUtils {
             method = compConf.getClass().getMethod("createParameterJsonSchema");
             Object oJSONBlob = method.invoke(compConf);
             if (oJSONBlob != null && oJSONBlob instanceof String) {
-                System.err.println(oJSONBlob.toString());
                 resModel = buildModelFromJSonBlob((String)oJSONBlob, clazz);  
                 resModel.setPrefixes(Arrays.asList(protocol));
                 saveModel(resModel);

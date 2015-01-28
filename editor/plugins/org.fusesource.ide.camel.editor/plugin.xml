@@ -99,6 +99,11 @@
                label="File Binding">
          </propertyTab>
          <propertyTab
+               category="sample"
+               id="JMSBindingTab"
+               label="Destination">
+         </propertyTab>
+         <propertyTab
                afterTab="DetailsTab"
                category="sample"
                id="AdvancedEndpointPropertiesSectionTab"
@@ -127,6 +132,12 @@
                filter="org.fusesource.ide.camel.editor.propertysheet.FileConnectorFilter"
                id="org.fusesource.ide.camel.editor.propertysheet.FileBindingSection"
                tab="FileBindingTab">
+         </propertySection>
+         <propertySection
+               class="org.fusesource.ide.camel.editor.propertysheet.JMSBindingSection"
+               filter="org.fusesource.ide.camel.editor.propertysheet.JMSConnectorFilter"
+               id="org.fusesource.ide.camel.editor.propertysheet.JMSBindingSection"
+               tab="JMSBindingTab">
          </propertySection>
          <propertySection
                afterSection="org.fusesource.ide.camel.editor.propertysheet.DetailsSection"

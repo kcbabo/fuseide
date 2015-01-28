@@ -80,6 +80,7 @@ import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.Endpoint;
 import org.fusesource.ide.camel.model.Flow;
 import org.fusesource.ide.camel.model.generated.Bean;
+import org.fusesource.ide.commons.camel.tools.BeanDef;
 import org.fusesource.ide.commons.util.Strings;
 
 
@@ -129,7 +130,7 @@ public class CamelFeatureProvider extends DefaultFeatureProvider {
 			featureList.addAll(Arrays.asList(features));
 
 			Set<Endpoint> endpoints = AbstractNodes.getAllEndpoints(selectedNode);
-			Map<String, String> beans = AbstractNodes.getAllBeans(selectedNode);
+			Map<String, BeanDef> beans = AbstractNodes.getAllBeans(selectedNode);
 			addEndpointInstances(featureList, endpoints);
 			addBeanInstances(featureList, beans);
 
@@ -138,14 +139,14 @@ public class CamelFeatureProvider extends DefaultFeatureProvider {
 		return features;
 	}
 
-	private void addBeanInstances(List<ICreateFeature> featureList, Map<String, String> beans) {
+	private void addBeanInstances(List<ICreateFeature> featureList, Map<String, BeanDef> beans) {
 		ArrayList<String> processedBeans = new ArrayList<String>();
-		Set<Entry<String, String>> entrySet = beans.entrySet();
-		for (Entry<String, String> entry : entrySet) {
+		Set<Entry<String, BeanDef>> entrySet = beans.entrySet();
+		for (Entry<String, BeanDef> entry : entrySet) {
 			String name = entry.getKey();
-			String aClass = entry.getValue();
+			String aClass = entry.getValue().getClassName();
 
-			if (Strings.isBlank(name) && Strings.isBlank(aClass)) {
+			if ((Strings.isBlank(name) && Strings.isBlank(aClass)) || !entry.getValue().getBeanType().equalsIgnoreCase("bean")) {
 				continue;
 			}
 

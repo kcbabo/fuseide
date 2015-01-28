@@ -48,6 +48,7 @@ import org.fusesource.ide.camel.model.RouteContainer;
 import org.fusesource.ide.camel.model.RouteSupport;
 import org.fusesource.ide.camel.model.generated.Bean;
 import org.fusesource.ide.camel.model.generated.Route;
+import org.fusesource.ide.commons.camel.tools.BeanDef;
 import org.fusesource.ide.commons.util.Strings;
 
 
@@ -110,7 +111,7 @@ public abstract class AbstractAddNodeMenuFactory {
 		// lets find what endpoints are available...
 		if (selectedNode != null) {
 			Set<Endpoint> endpoints = AbstractNodes.getAllEndpoints(selectedNode);
-			Map<String, String> beans = AbstractNodes.getAllBeans(selectedNode);
+			Map<String, BeanDef> beans = AbstractNodes.getAllBeans(selectedNode);
 			if (endpoints.size() > 0 || beans.size() > 0) {
 				/*
 				// TODO add a separator...
@@ -168,14 +169,14 @@ public abstract class AbstractAddNodeMenuFactory {
 	}
 
 
-	protected void addBeanInstances(ContextMenuEntry menu, Map<String, String> beans, ICustomContext context,
+	protected void addBeanInstances(ContextMenuEntry menu, Map<String, BeanDef> beans, ICustomContext context,
 			IFeatureProvider fp) {
 		ArrayList<String> processedBeans = new ArrayList<String>();
 		
-		for (Map.Entry<String,String> entry : beans.entrySet()) {
+		for (Map.Entry<String,BeanDef> entry : beans.entrySet()) {
 			final String name = entry.getKey();
-			final String aClass = entry.getValue();
-			if (Strings.isBlank(name) && Strings.isBlank(aClass)) {
+			final String aClass = beans.get(name).getClassName();
+			if ((Strings.isBlank(name) && Strings.isBlank(aClass)) || !beans.get(name).getBeanType().equalsIgnoreCase("bean")) {
 				continue;
 			}
 			if (processedBeans.contains(name)) continue;
