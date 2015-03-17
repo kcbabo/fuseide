@@ -30,6 +30,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,6 +54,7 @@ import org.apache.camel.model.ModelCamelContext;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.model.RoutesDefinition;
 import org.apache.camel.spring.CamelContextFactoryBean;
+import org.apache.camel.spring.CamelEndpointFactoryBean;
 import org.apache.camel.spring.CamelRouteContextFactoryBean;
 import org.fusesource.ide.commons.Activator;
 import org.fusesource.ide.commons.camel.tools.parser.PatchedXMLParser;
@@ -316,7 +318,7 @@ public class RouteXml {
         routes.clear();
         routes.addAll(routeDefinitionList);
     }
-
+    
     public void copyRoutesToElement(CamelContext context, CamelContextFactoryBean contextElement) {
         if (context instanceof ModelCamelContext) {
             copyRoutesToElement(((ModelCamelContext)context).getRouteDefinitions(), contextElement);
@@ -344,11 +346,17 @@ public class RouteXml {
         marshal(file, transformer.transform(model));
     }
 
-    public String marshalToText(String text, final List<RouteDefinition> routeDefinitionList) throws Exception {
+    public String marshalToText(String text, 
+    		final List<RouteDefinition> routeDefinitionList, 
+    		final CamelContextFactoryBean camelContext) throws Exception {
         return marshalToText(text, new Model2Model() {
             @Override
             public XmlModel transform(XmlModel model) {
                 copyRoutesToElement(routeDefinitionList, model.getContextElement());
+                if (camelContext != null) {
+                    model.getContextElement().setDataFormats(camelContext.getDataFormats());
+                    setEndpoints(model.getContextElement(), camelContext.getEndpoints());
+                }
                 return model;
             }
         });
@@ -490,4 +498,19 @@ public class RouteXml {
 
     }
 
+    /**
+     * Due to https://issues.apache.org/jira/browse/CAMEL-8498, we cannot set
+     * endpoints on CamelContextFactoryBean directly.  Use reflection for now
+     * until this issue is resolved upstream.
+     */
+    private void setEndpoints(CamelContextFactoryBean context, 
+            List<CamelEndpointFactoryBean> endpoints) {
+        try {
+            Field endpointsField = context.getClass().getDeclaredField("endpoints");
+            endpointsField.setAccessible(true);
+            endpointsField.set(context, endpoints);
+        } catch (Exception ex) {
+            Activator.getLogger().error("Failed to update endpoints in camelContext", ex);
+        }
+    }
 }
