@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Fuse Transformation Tooling Update Site">
+      This is the update site for Fuse Transformation Tooling.
+   </description>
+   <feature id="org.jboss.tools.fuse.transformation.feature">
+      <category name="AllFeatures"/>
+   </feature>
+   <feature id="org.jboss.tools.fuse.transformation.featuresource">
+      <category name="AllSources"/>
+   </feature>
+   <category-def name="AllFeatures" label="JBoss Fuse Transformation Tooling Nightly Build Update Site">
+      <description>
+         JBoss Fuse Transformation Tooling Nightly Build Update Site: contains all features in this build.
+      </description>
+   </category-def>
+   <category-def name="AllSources" label="JBoss Fuse Transformation Tooling Nightly Build Update Site">
+      <description>
+         JBoss Fuse Transformation Tooling Nightly Build Update Site: contains all source features in this build.
+      </description>
+   </category-def>
+</site>
