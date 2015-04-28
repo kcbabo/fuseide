@@ -250,8 +250,8 @@ public class TransformTestWizardPage extends NewTypeWizardPage {
             srcPath = project.getPath().append(
                     srcPath.makeRelativeTo(project.getProject()
                             .getLocation()));
-            IPackageFragmentRoot root = project
-                    .findPackageFragmentRoot(srcPath);
+            IFolder srcFolder = project.getProject().getFolder(srcPath);
+            IPackageFragmentRoot root = project.getPackageFragmentRoot(srcFolder);
             if (packageName == null) {
                 packageName = ""; //$NON-NLS-1$
             }
