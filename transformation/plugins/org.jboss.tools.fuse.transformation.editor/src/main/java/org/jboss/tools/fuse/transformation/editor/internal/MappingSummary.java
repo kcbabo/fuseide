@@ -121,7 +121,7 @@ final class MappingSummary extends MappingViewer {
             dispose((MappingOperation<?, ?>) oldValue);
         else if (eventType.equals(TransformationConfig.MAPPING_SOURCE)) {
             MappingOperation<?, ?> tempMapping = (MappingOperation<?, ?>) newValue;
-            if (Util.dragSourceIsValid((Model) tempMapping.getSource()) == null) {
+            if (tempMapping.getType() != MappingType.EXPRESSION && Util.dragSourceIsValid((Model) tempMapping.getSource()) == null) {
                 mapping = (MappingOperation<?, ?>)newValue;
                 setSourceText();
                 mappingSourcePane.layout();
