@@ -14,6 +14,7 @@ package org.jboss.tools.fuse.transformation.dozer;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.ParameterizedType;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -151,6 +152,41 @@ public class DozerMapperConfiguration implements MapperConfiguration {
                 } else {
                     Model sourceParentModel = loadModel(mapping.getClassA().getContent());
                     Model sourceModel = sourceParentModel.get(field.getA().getContent());
+                    DozerFieldMapping fieldMapping =
+                            new DozerFieldMapping(sourceModel, targetModel, mapping, field);
+                    // check to see if this field mapping is customized
+                    if (CUSTOM_MAPPER_ID.equals(field.getCustomConverterId())) {
+                        fieldMapping = new DozerCustomMapping(fieldMapping);
+                    }
+                    mappings.add(fieldMapping);
+                }
+            }
+        }
+        return mappings;
+    }
+    
+    public List<MappingOperation<?, ?>> getMappings(Model source, Model target) {
+        LinkedList<MappingOperation<?, ?>> mappings = new LinkedList<MappingOperation<?, ?>>();
+        for (Mapping mapping : mapConfig.getMapping()) {
+            String targetType = mapping.getClassB().getContent();
+
+            for (Object o : mapping.getFieldOrFieldExclude()) {
+                if (!(o instanceof Field)) {
+                    continue;
+                }
+                Field field = (Field) o;
+                Model targetModel = getModel(target, targetType, field.getB().getContent());
+
+                if (VARIABLE_MAPPER_ID.equals(field.getCustomConverterId())) {
+                    Variable variable = getVariable(DozerVariableMapping.unqualifyName(
+                            field.getCustomConverterParam()));
+                    mappings.add(new DozerVariableMapping(variable, targetModel, mapping, field));
+                } else if (EXPRESSION_MAPPER_ID.equals(field.getCustomConverterId())) {
+                    Expression expression = new DozerExpression(field);
+                    mappings.add(new DozerExpressionMapping(expression, targetModel, mapping, field));
+                } else {
+                    String sourceType = mapping.getClassA().getContent();
+                    Model sourceModel = getModel(source, sourceType, field.getA().getContent());
                     DozerFieldMapping fieldMapping =
                             new DozerFieldMapping(sourceModel, targetModel, mapping, field);
                     // check to see if this field mapping is customized
@@ -490,5 +526,28 @@ public class DozerMapperConfiguration implements MapperConfiguration {
         variables.getVariable().add(dozerVar);
         
         return new DozerVariable(dozerVar);
+    }
+    
+    private Model getModel(Model model, String type, String name) {
+        // See if the current model is the target model
+        if (type.equals(model.getType()) && name.equals(model.getName())) {
+            return model;
+        }
+        // If the target model is not a list, we can get it by name 
+        Model found = model.get(name);
+        // If we still don't have a hit, the target model must be part of a collection
+        if (found == null) {
+            for (Model childModel : model.getChildren()) {
+                if (!childModel.isCollection()) {
+                    continue;
+                }
+                found = getModel(childModel, childModel.getType(), name);
+                if (found != null) {
+                    break;
+                }
+            }
+        }
+        
+        return found;
     }
 }

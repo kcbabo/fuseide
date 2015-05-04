@@ -131,6 +131,23 @@ public class DozerMapperConfigurationTest {
     }
     
     @Test
+    public void getMappingsUsingModels() throws Exception {
+        DozerMapperConfiguration config = loadConfig("parentsAndLists.xml");
+        Assert.assertEquals(8, config.getMappings().size());
+        int fieldMappings = 0;
+        int variableMappings = 0;
+        Model sourceModel = ModelBuilder.fromJavaClass(example.ListsAndNestedTypes.class);
+        Model targetModel = ModelBuilder.fromJavaClass(example.ListsAndNestedTypes.class);
+        for (MappingOperation<?,?> mapping : config.getMappings(sourceModel, targetModel)) {
+            BaseDozerMapping dozerMap = (BaseDozerMapping)mapping;
+            System.out.println(dozerMap.getField().getA().getContent() + " => " + dozerMap.getField().getB().getContent());
+            Assert.assertNotNull(mapping.getSource());
+            Assert.assertNotNull(mapping.getTarget());
+            System.out.println("TRUE");
+        }
+    }
+    
+    @Test
     public void getVariables() throws Exception {
         DozerMapperConfiguration config = loadConfig("fieldAndVariableMapping.xml");
         Variable var3 = config.addVariable("VAR3", "XYZ");
