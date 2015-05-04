@@ -14,7 +14,6 @@ package org.jboss.tools.fuse.transformation.dozer;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.ParameterizedType;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,6 +56,8 @@ public class DozerMapperConfiguration implements MapperConfiguration {
     private JAXBContext jaxbCtx;
     private ClassLoader loader;
     private final Mappings mapConfig;
+    private Model sourceModel;
+    private Model targetModel;
     private final Model variableModel =
             new Model("variables", VARIABLE_MAPPER_CLASS)
                     .addChild("literal", java.lang.String.class.getName());
@@ -129,43 +130,8 @@ public class DozerMapperConfiguration implements MapperConfiguration {
         ((BaseDozerMapping) mapping).delete();
     }
 
-    @Override
-    public List<MappingOperation<?, ?>> getMappings() {
-        LinkedList<MappingOperation<?, ?>> mappings = new LinkedList<MappingOperation<?, ?>>();
-        for (Mapping mapping : mapConfig.getMapping()) {
-            Model targetParentModel = loadModel(mapping.getClassB().getContent());
-
-            for (Object o : mapping.getFieldOrFieldExclude()) {
-                if (!(o instanceof Field)) {
-                    continue;
-                }
-                Field field = (Field) o;
-                Model targetModel = targetParentModel.get(field.getB().getContent());
-
-                if (VARIABLE_MAPPER_ID.equals(field.getCustomConverterId())) {
-                    Variable variable = getVariable(DozerVariableMapping.unqualifyName(
-                            field.getCustomConverterParam()));
-                    mappings.add(new DozerVariableMapping(variable, targetModel, mapping, field));
-                } else if (EXPRESSION_MAPPER_ID.equals(field.getCustomConverterId())) {
-                    Expression expression = new DozerExpression(field);
-                    mappings.add(new DozerExpressionMapping(expression, targetModel, mapping, field));
-                } else {
-                    Model sourceParentModel = loadModel(mapping.getClassA().getContent());
-                    Model sourceModel = sourceParentModel.get(field.getA().getContent());
-                    DozerFieldMapping fieldMapping =
-                            new DozerFieldMapping(sourceModel, targetModel, mapping, field);
-                    // check to see if this field mapping is customized
-                    if (CUSTOM_MAPPER_ID.equals(field.getCustomConverterId())) {
-                        fieldMapping = new DozerCustomMapping(fieldMapping);
-                    }
-                    mappings.add(fieldMapping);
-                }
-            }
-        }
-        return mappings;
-    }
     
-    public List<MappingOperation<?, ?>> getMappings(Model source, Model target) {
+    public List<MappingOperation<?, ?>> getMappings() {
         LinkedList<MappingOperation<?, ?>> mappings = new LinkedList<MappingOperation<?, ?>>();
         for (Mapping mapping : mapConfig.getMapping()) {
             String targetType = mapping.getClassB().getContent();
@@ -175,7 +141,7 @@ public class DozerMapperConfiguration implements MapperConfiguration {
                     continue;
                 }
                 Field field = (Field) o;
-                Model targetModel = getModel(target, targetType, field.getB().getContent());
+                Model targetModel = getModel(getTargetModel(), targetType, field.getB().getContent());
 
                 if (VARIABLE_MAPPER_ID.equals(field.getCustomConverterId())) {
                     Variable variable = getVariable(DozerVariableMapping.unqualifyName(
@@ -186,7 +152,7 @@ public class DozerMapperConfiguration implements MapperConfiguration {
                     mappings.add(new DozerExpressionMapping(expression, targetModel, mapping, field));
                 } else {
                     String sourceType = mapping.getClassA().getContent();
-                    Model sourceModel = getModel(source, sourceType, field.getA().getContent());
+                    Model sourceModel = getModel(getSourceModel(), sourceType, field.getA().getContent());
                     DozerFieldMapping fieldMapping =
                             new DozerFieldMapping(sourceModel, targetModel, mapping, field);
                     // check to see if this field mapping is customized
@@ -314,23 +280,25 @@ public class DozerMapperConfiguration implements MapperConfiguration {
     }
 
     @Override
-    public Model getSourceModel() {
-        Model source = null;
-        Mapping root = getRootMapping();
-        if (root != null && root.getClassA() != null) {
-            source = loadModel(root.getClassA().getContent());
+    public synchronized Model getSourceModel() {
+        if (sourceModel == null) {
+            Mapping root = getRootMapping();
+            if (root != null && root.getClassA() != null) {
+                sourceModel = loadModel(root.getClassA().getContent());
+            }
         }
-        return source;
+        return sourceModel;
     }
 
     @Override
-    public Model getTargetModel() {
-        Model target = null;
-        Mapping root = getRootMapping();
-        if (root != null && root.getClassB() != null) {
-            target = loadModel(root.getClassB().getContent());
+    public synchronized Model getTargetModel() {
+        if (targetModel == null) {
+            Mapping root = getRootMapping();
+            if (root != null && root.getClassB() != null) {
+                targetModel = loadModel(root.getClassB().getContent());
+            }
         }
-        return target;
+        return targetModel;
     }
 
     @Override
@@ -538,10 +506,12 @@ public class DozerMapperConfiguration implements MapperConfiguration {
         // If we still don't have a hit, the target model must be part of a collection
         if (found == null) {
             for (Model childModel : model.getChildren()) {
-                if (!childModel.isCollection()) {
-                    continue;
+                if (childModel.isCollection()) {
+                    found = getModel(childModel, childModel.getType(), name);
+                } else {
+                    found = getModel(childModel, type, name);
                 }
-                found = getModel(childModel, childModel.getType(), name);
+                
                 if (found != null) {
                     break;
                 }

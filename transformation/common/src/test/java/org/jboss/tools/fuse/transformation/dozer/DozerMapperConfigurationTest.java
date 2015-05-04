@@ -131,14 +131,10 @@ public class DozerMapperConfigurationTest {
     }
     
     @Test
-    public void getMappingsUsingModels() throws Exception {
+    public void getMappingsListsAndNested() throws Exception {
         DozerMapperConfiguration config = loadConfig("parentsAndLists.xml");
         Assert.assertEquals(8, config.getMappings().size());
-        int fieldMappings = 0;
-        int variableMappings = 0;
-        Model sourceModel = ModelBuilder.fromJavaClass(example.ListsAndNestedTypes.class);
-        Model targetModel = ModelBuilder.fromJavaClass(example.ListsAndNestedTypes.class);
-        for (MappingOperation<?,?> mapping : config.getMappings(sourceModel, targetModel)) {
+        for (MappingOperation<?,?> mapping : config.getMappings()) {
             BaseDozerMapping dozerMap = (BaseDozerMapping)mapping;
             System.out.println(dozerMap.getField().getA().getContent() + " => " + dozerMap.getField().getB().getContent());
             Assert.assertNotNull(mapping.getSource());
