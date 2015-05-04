@@ -134,13 +134,31 @@ public class DozerMapperConfigurationTest {
     public void getMappingsListsAndNested() throws Exception {
         DozerMapperConfiguration config = loadConfig("parentsAndLists.xml");
         Assert.assertEquals(8, config.getMappings().size());
+        Model referenceModel = ModelBuilder.fromJavaClass(example.ListsAndNestedTypes.class);
+        Model testField1 = null;
+        Model testField2 = null;
+        Model testField3 = null;
+        
         for (MappingOperation<?,?> mapping : config.getMappings()) {
-            BaseDozerMapping dozerMap = (BaseDozerMapping)mapping;
-            System.out.println(dozerMap.getField().getA().getContent() + " => " + dozerMap.getField().getB().getContent());
             Assert.assertNotNull(mapping.getSource());
             Assert.assertNotNull(mapping.getTarget());
-            System.out.println("TRUE");
+            Model model = (Model)mapping.getSource();
+            switch(model.getName()) {
+                case "field1" :
+                    testField1 = model;
+                    break;
+                case "B1" :
+                    testField2 = model;
+                    break;
+                case "A1" :
+                    testField3 = model;
+                    break;
+            }
         }
+        
+        Assert.assertEquals(referenceModel.get("nested1.field1"), testField1);
+        Assert.assertEquals(referenceModel.get("nested1.classB.B1"), testField2);
+        Assert.assertEquals(referenceModel.get("listOfAs.A1"), testField3);
     }
     
     @Test
