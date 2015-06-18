@@ -100,6 +100,18 @@ public interface MapperConfiguration {
      * @return mapping created
      */
     FieldMapping mapField(Model source, Model target);
+    
+    /**
+     * Map a source field to a target field using indexes.
+     * 
+     * @param source model for the source field
+     * @param target model for the target field
+     * @param sourceIndex index for source field
+     * @param targetIndex index for target field
+     * @return mapping created
+     */
+    FieldMapping mapField(Model source, Model target, 
+            List<Integer> sourceIndex, List<Integer> targetIndex);
 
     /**
      * Map a variable to a target field.

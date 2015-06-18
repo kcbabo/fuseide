@@ -375,6 +375,21 @@ public class DozerMapperConfigurationTest {
     }
     
     @Test
+    public void createIndexedMappings() throws Exception {
+        DozerMapperConfiguration config = DozerMapperConfiguration.newConfig();
+        config.addClassMapping("example.DeepList", "example.DeepList");
+        Model deepList = config.getSourceModel();
+        FieldMapping scalarToVector = config.mapField(
+                deepList.get("fieldL1"), deepList.get("listL1.fieldL2"), 
+                Arrays.asList(new Integer[] {null}), Arrays.asList(new Integer[] {0, null}));
+        config.saveConfig(System.out);
+        scalarToVector.setTargetIndex(Arrays.asList(new Integer[] {1, null}));
+        
+        // Serialize the edited config and compare to our reference
+        //compareConfig(config, "indexedMapping.xml");
+    }
+    
+    @Test
     public void wildcardDisabledOnNewConfigurations() throws Exception {
         DozerMapperConfiguration mapConfig = DozerMapperConfiguration.newConfig();
         Configuration config = mapConfig.getDozerConfig().getConfiguration();

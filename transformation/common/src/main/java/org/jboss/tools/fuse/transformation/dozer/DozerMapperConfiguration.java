@@ -237,21 +237,23 @@ public class DozerMapperConfiguration implements MapperConfiguration {
 
     @Override
     public DozerFieldMapping mapField(final Model source, final Model target) {
+        return mapField(source, target, DozerUtil.noIndex(source), DozerUtil.noIndex(target));
+    }
+    
+    @Override
+    public DozerFieldMapping mapField(Model source, Model target, 
+            List<Integer> sourceIndex, List<Integer> targetIndex) {
+        
+        validateIndex(source, sourceIndex);
+        validateIndex(target, targetIndex);
+        
         // Only add a class mapping if one has not been created already
         if (getClassMapping(source, target) == null) {
-            /*
-            final String sourceType = source.getParent().isCollection()
-                    ? ModelBuilder.getListType(source.getParent().getType())
-                    : source.getParent().getType();
-            final String targetType = target.getParent().isCollection()
-                    ? ModelBuilder.getListType(target.getParent().getType())
-                    : target.getParent().getType();
-                    */
-            addClassMapping(getRootType(source), getRootType(target));
+            addClassMapping(getRootType(source, sourceIndex), getRootType(target, targetIndex));
         }
 
         // Add field mapping details for the source and target
-        return addFieldMapping(source, target);
+        return addFieldMapping(source, target, sourceIndex, targetIndex);
     }
 
     @Override
@@ -354,10 +356,19 @@ public class DozerMapperConfiguration implements MapperConfiguration {
     }
     
     String getRootType(Model field) {
+        return getRootType(field, DozerUtil.noIndex(field));
+    }
+    
+    String getRootType(Model field, List<Integer> index) {
         Model root = field.getParent();
-        while (root.getParent() != null && !root.isCollection()) {
+        for (int i = index.size() - 1; i >= 0; i--) {
+            // jump up the parent chain until we hit the model root or a collection with no index
+            if (root.getParent() == null || (root.isCollection() && index.get(i) == null)) {
+                break;
+            }
             root = root.getParent();
         }
+        
         return root.isCollection() ? ModelBuilder.getListType(root.getType()) : root.getType();
     }
 
@@ -405,8 +416,9 @@ public class DozerMapperConfiguration implements MapperConfiguration {
     }
 
     // Add a field mapping to the dozer config.
-    DozerFieldMapping addFieldMapping(final Model source, final Model target) {
-        Mapping mapping = getClassMapping(source, target);
+    DozerFieldMapping addFieldMapping(final Model source, final Model target,
+            final List<Integer> sourceIndex, final List<Integer> targetIndex) {
+        Mapping mapping = getClassMapping(source, target, sourceIndex, targetIndex);
         final Field field = new Field();
         field.setA(createField(source, mapping.getClassA().getContent()));
         field.setB(createField(target, mapping.getClassB().getContent()));
@@ -417,6 +429,11 @@ public class DozerMapperConfiguration implements MapperConfiguration {
     
     Mapping getClassMapping(final Model source, final Model target) {
         return getClassMapping(getRootType(source), getRootType(target));
+    }
+    
+    Mapping getClassMapping(final Model source, final Model target, 
+            final List<Integer> sourceIndex, final List<Integer> targetIndex) {
+        return getClassMapping(getRootType(source, sourceIndex), getRootType(target, targetIndex));
     }
 
     // Return an existing mapping which includes the specified model
@@ -430,23 +447,6 @@ public class DozerMapperConfiguration implements MapperConfiguration {
         }
         // No class mapping found
         return null;
-        /**
-        for (Model currentModel = model; currentModel != null; currentModel = currentModel.getParent()) {
-            String type = currentModel.isCollection()
-                    ? ModelBuilder.getListType(currentModel.getType()) : currentModel.getType();
-            for (final Mapping m : mapConfig.getMapping()) {
-                if ((m.getClassA().getContent().equals(type) || m.getClassB().getContent().equals(type))) {
-                    return m;
-                }
-            }
-            
-            if (currentModel.isCollection()) {
-                break;
-            }
-        }
-        // No class mapping found
-        return null;
-        */
     }
 
     Mapping getRootMapping() {
@@ -524,5 +524,13 @@ public class DozerMapperConfiguration implements MapperConfiguration {
         }
 
         return found;
+    }
+    
+    private void validateIndex(Model model, List<Integer> index) throws RuntimeException {
+        int nodes = DozerUtil.numberOfNodes(model);
+        if (nodes != index.size()) {
+            throw new RuntimeException("Invalid index size for model, expected " 
+                    + nodes + " but index size is " + index.size());
+        }
     }
 }
