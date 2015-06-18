@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.InputSource;
 
+import abcorder.ABCOrder;
 import example.AClass;
 import example.BClass;
 
@@ -80,9 +81,11 @@ public class DozerMapperConfigurationTest {
         Model modelA = ModelBuilder.fromJavaClass(A.class);
         Model modelB = ModelBuilder.fromJavaClass(B.class);
         config.addClassMapping(modelA.getType(), modelB.getType());
-        config.mapField(modelA.get("data"), modelB.get("c").get("d").get("data"));
+        Model sourceField = modelA.get("data");
+        Model targetField = modelB.get("c").get("d").get("data");
+        config.mapField(sourceField, targetField);
         
-       Mapping mapping = config.getClassMapping(modelA);
+       Mapping mapping = config.getClassMapping(sourceField, targetField);
        Field field = (Field)mapping.getFieldOrFieldExclude().get(0);
        Assert.assertEquals("data", field.getA().getContent());
        Assert.assertEquals("c.d.data", field.getB().getContent());
@@ -97,9 +100,11 @@ public class DozerMapperConfigurationTest {
         Model modelA = ModelBuilder.fromJavaClass(A.class);
         Model modelB = ModelBuilder.fromJavaClass(B.class);
         config.addClassMapping(modelA.getType(), modelB.getType());
-        config.mapField(modelA.get("data"), modelB.get("data"));
+        Model sourceField = modelA.get("data");
+        Model targetField = modelB.get("data");
+        config.mapField(sourceField, targetField);
         
-       Mapping mapping = config.getClassMapping(modelA);
+       Mapping mapping = config.getClassMapping(sourceField, targetField);
        Field field = (Field)mapping.getFieldOrFieldExclude().get(0);
        Assert.assertEquals("data", field.getA().getContent());
        Assert.assertEquals("data", field.getB().getContent());
@@ -375,6 +380,27 @@ public class DozerMapperConfigurationTest {
         Configuration config = mapConfig.getDozerConfig().getConfiguration();
         Assert.assertNotNull(config);
         Assert.assertFalse(config.isWildcard());
+    }
+    
+    @Test
+    public void getClassMapping() throws Exception {
+        DozerMapperConfiguration config = loadConfig("exampleMapping.xml");
+        Model source = config.getSourceModel();
+        Model target = config.getTargetModel();
+        Assert.assertEquals("xyzorderschema.XyzOrderSchema", config.getRootType(target.get("custId")));
+        Assert.assertEquals("abcorder.ABCOrder", config.getRootType(source.get("header.customerNum")));
+    }
+    
+    @Test
+    public void mapAbcToAbc() throws Exception {
+        DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
+        Model abcOrder = ModelBuilder.fromJavaClass(ABCOrder.class);
+        config.addClassMapping("abcorder.ABCOrder", "abcorder.ABCOrder");
+        config.mapField(abcOrder.get("header.customerNum"), abcOrder.get("header.customerNum"));
+        config.mapField(abcOrder.get("orderItems.item"), abcOrder.get("orderItems.item"));
+        config.mapField(abcOrder.get("orderItems.item.id"), abcOrder.get("orderItems.item.id"));
+        
+        Assert.fail("add check here!");
     }
     
     private DozerMapperConfiguration loadConfig(String configName) throws Exception {

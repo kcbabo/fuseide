@@ -238,14 +238,16 @@ public class DozerMapperConfiguration implements MapperConfiguration {
     @Override
     public DozerFieldMapping mapField(final Model source, final Model target) {
         // Only add a class mapping if one has not been created already
-        if (requiresClassMapping(source.getParent(), target.getParent())) {
+        if (getClassMapping(source, target) == null) {
+            /*
             final String sourceType = source.getParent().isCollection()
                     ? ModelBuilder.getListType(source.getParent().getType())
                     : source.getParent().getType();
             final String targetType = target.getParent().isCollection()
                     ? ModelBuilder.getListType(target.getParent().getType())
                     : target.getParent().getType();
-            addClassMapping(sourceType, targetType);
+                    */
+            addClassMapping(getRootType(source), getRootType(target));
         }
 
         // Add field mapping details for the source and target
@@ -350,13 +352,13 @@ public class DozerMapperConfiguration implements MapperConfiguration {
 
         return customMapping;
     }
-
-    boolean requiresClassMapping(final Model source, final Model target) {
-        // If a class mapping already exists, then no need to add a new one
-        if (getClassMapping(source) != null || getClassMapping(target) != null) {
-            return false;
+    
+    String getRootType(Model field) {
+        Model root = field.getParent();
+        while (root.getParent() != null && !root.isCollection()) {
+            root = root.getParent();
         }
-        return true;
+        return root.isCollection() ? ModelBuilder.getListType(root.getType()) : root.getType();
     }
 
     Mapping mapClass(final String sourceClass, final String targetClass) {
@@ -404,13 +406,7 @@ public class DozerMapperConfiguration implements MapperConfiguration {
 
     // Add a field mapping to the dozer config.
     DozerFieldMapping addFieldMapping(final Model source, final Model target) {
-        Mapping mapping;
-        if (getClassMapping(source.getParent()) != null) {
-            mapping = getClassMapping(source.getParent());
-        } else {
-            mapping = getClassMapping(target.getParent());
-        }
-
+        Mapping mapping = getClassMapping(source, target);
         final Field field = new Field();
         field.setA(createField(source, mapping.getClassA().getContent()));
         field.setB(createField(target, mapping.getClassB().getContent()));
@@ -418,23 +414,39 @@ public class DozerMapperConfiguration implements MapperConfiguration {
 
         return new DozerFieldMapping(source, target, mapping, field);
     }
+    
+    Mapping getClassMapping(final Model source, final Model target) {
+        return getClassMapping(getRootType(source), getRootType(target));
+    }
 
-    // Return an existing mapping which includes the specified node's parent
+    // Return an existing mapping which includes the specified model
     // as a source or target. This basically fetches the mapping definition
     // under which a field mapping can be defined.
-    Mapping getClassMapping(final Model model) {
-        Mapping mapping = null;
-        final String type =
-                model.isCollection() ? ModelBuilder.getListType(model.getType()) : model.getType();
-
+    Mapping getClassMapping(final String sourceType, final String targetType) {
         for (final Mapping m : mapConfig.getMapping()) {
-            if ((m.getClassA().getContent().equals(type)
-            || m.getClassB().getContent().equals(type))) {
-                mapping = m;
+            if ((m.getClassA().getContent().equals(sourceType) && m.getClassB().getContent().equals(targetType))) {
+                return m;
+            }
+        }
+        // No class mapping found
+        return null;
+        /**
+        for (Model currentModel = model; currentModel != null; currentModel = currentModel.getParent()) {
+            String type = currentModel.isCollection()
+                    ? ModelBuilder.getListType(currentModel.getType()) : currentModel.getType();
+            for (final Mapping m : mapConfig.getMapping()) {
+                if ((m.getClassA().getContent().equals(type) || m.getClassB().getContent().equals(type))) {
+                    return m;
+                }
+            }
+            
+            if (currentModel.isCollection()) {
                 break;
             }
         }
-        return mapping;
+        // No class mapping found
+        return null;
+        */
     }
 
     Mapping getRootMapping() {
