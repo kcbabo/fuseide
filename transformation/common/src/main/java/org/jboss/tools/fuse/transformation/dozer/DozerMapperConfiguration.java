@@ -248,34 +248,46 @@ public class DozerMapperConfiguration implements MapperConfiguration {
         validateIndex(target, targetIndex);
         
         // Only add a class mapping if one has not been created already
-        if (getClassMapping(source, target) == null) {
+        if (getClassMapping(source, target, sourceIndex, targetIndex) == null) {
             addClassMapping(getRootType(source, sourceIndex), getRootType(target, targetIndex));
         }
 
         // Add field mapping details for the source and target
         return addFieldMapping(source, target, sourceIndex, targetIndex);
     }
-
+    
     @Override
     public DozerVariableMapping mapVariable(final Variable variable, final Model target) {
+        return mapVariable(variable, target, DozerUtil.noIndex(target));
+    }
+
+    @Override
+    public DozerVariableMapping mapVariable(
+            final Variable variable, final Model target, List<Integer> targetIndex) {
         // create the mapping
         Mapping mapping = getExtendedMapping(VARIABLE_MAPPER_CLASS, target);
         Field field = new Field();
         field.setA(createField(variableModel, VARIABLE_MAPPER_CLASS));
-        field.setB(createField(target, mapping.getClassB().getContent()));
+        field.setB(createField(target, mapping.getClassB().getContent(), targetIndex));
         field.setCustomConverterId(VARIABLE_MAPPER_ID);
         field.setCustomConverterParam(DozerVariableMapping.qualifyName(variable.getName()));
         mapping.getFieldOrFieldExclude().add(field);
 
         return new DozerVariableMapping(variable, target, mapping, field);
     }
-
+    
     @Override
     public DozerExpressionMapping mapExpression(String language, String expression, Model target) {
+        return mapExpression(language, expression, target, DozerUtil.noIndex(target));
+    }
+
+    @Override
+    public DozerExpressionMapping mapExpression(
+            String language, String expression, Model target, List<Integer> targetIndex) {
         Mapping mapping = getExtendedMapping(EXPRESSION_MAPPER_CLASS, target);
         Field field = new Field();
         field.setA(createField(expressionModel, EXPRESSION_MAPPER_CLASS));
-        field.setB(createField(target, mapping.getClassB().getContent()));
+        field.setB(createField(target, mapping.getClassB().getContent(), targetIndex));
         DozerExpression dozerExpression = new DozerExpression(field);
         dozerExpression.setExpression(expression);
         dozerExpression.setLanguage(language);
@@ -361,7 +373,7 @@ public class DozerMapperConfiguration implements MapperConfiguration {
     
     String getRootType(Model field, List<Integer> index) {
         Model root = field.getParent();
-        for (int i = index.size() - 1; i >= 0; i--) {
+        for (int i = index.size() - 2; i >= 0; i--) {
             // jump up the parent chain until we hit the model root or a collection with no index
             if (root.getParent() == null || (root.isCollection() && index.get(i) == null)) {
                 break;
@@ -408,10 +420,14 @@ public class DozerMapperConfiguration implements MapperConfiguration {
     Mappings getDozerConfig() {
         return mapConfig;
     }
-
+    
     FieldDefinition createField(final Model model, final String rootType) {
+        return createField(model, rootType, DozerUtil.noIndex(model));
+    }
+
+    FieldDefinition createField(final Model model, final String rootType, List<Integer> indexes) {
         final FieldDefinition fd = new FieldDefinition();
-        fd.setContent(DozerUtil.getFieldName(model, rootType));
+        fd.setContent(DozerUtil.getFieldName(model, rootType, indexes));
         return fd;
     }
 
@@ -420,8 +436,8 @@ public class DozerMapperConfiguration implements MapperConfiguration {
             final List<Integer> sourceIndex, final List<Integer> targetIndex) {
         Mapping mapping = getClassMapping(source, target, sourceIndex, targetIndex);
         final Field field = new Field();
-        field.setA(createField(source, mapping.getClassA().getContent()));
-        field.setB(createField(target, mapping.getClassB().getContent()));
+        field.setA(createField(source, mapping.getClassA().getContent(), sourceIndex));
+        field.setB(createField(target, mapping.getClassB().getContent(), targetIndex));
         mapping.getFieldOrFieldExclude().add(field);
 
         return new DozerFieldMapping(source, target, mapping, field);

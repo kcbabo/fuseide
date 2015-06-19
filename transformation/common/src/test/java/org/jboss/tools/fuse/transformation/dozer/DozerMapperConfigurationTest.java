@@ -376,17 +376,19 @@ public class DozerMapperConfigurationTest {
     
     @Test
     public void createIndexedMappings() throws Exception {
-        DozerMapperConfiguration config = DozerMapperConfiguration.newConfig();
+        DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
         config.addClassMapping("example.DeepList", "example.DeepList");
         Model deepList = config.getSourceModel();
-        FieldMapping scalarToVector = config.mapField(
+        config.mapField(
                 deepList.get("fieldL1"), deepList.get("listL1.fieldL2"), 
                 Arrays.asList(new Integer[] {null}), Arrays.asList(new Integer[] {0, null}));
-        config.saveConfig(System.out);
-        scalarToVector.setTargetIndex(Arrays.asList(new Integer[] {1, null}));
+
+        config.mapField(
+                deepList.get("listL1.listL2.fieldL3"), deepList.get("fieldL1"), 
+                Arrays.asList(new Integer[] {0, 0, null}), Arrays.asList(new Integer[] {null}));
         
         // Serialize the edited config and compare to our reference
-        //compareConfig(config, "indexedMapping.xml");
+        compareConfig(config, "indexedMapping.xml");
     }
     
     @Test
@@ -415,7 +417,8 @@ public class DozerMapperConfigurationTest {
         config.mapField(abcOrder.get("orderItems.item"), abcOrder.get("orderItems.item"));
         config.mapField(abcOrder.get("orderItems.item.id"), abcOrder.get("orderItems.item.id"));
         
-        Assert.fail("add check here!");
+        // Serialize the edited config and compare to our reference
+        compareConfig(config, "abc2abc.xml");
     }
     
     private DozerMapperConfiguration loadConfig(String configName) throws Exception {
