@@ -21,6 +21,7 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.jboss.tools.fuse.transformation.model.ModelBuilder.Strategy;
 import org.junit.Test;
 
 public class ModelBuilderTest {
@@ -72,12 +73,31 @@ public class ModelBuilderTest {
         Model model = ModelBuilder.fromJavaClass(ListOfStringsAndNumbers.class);
         Assert.assertEquals(3, model.listFields().size());
     }
+    
+    @Test
+    public void listsOfStringsAndNumbersProperties() throws Exception {
+        Model model = ModelBuilder.fromJavaClass(ListOfStringsAndNumbers.class, Strategy.PROPERTIES);
+        Assert.assertEquals(2, model.listFields().size());
+    }
+    
+    @Test
+    public void testHL7() throws Exception {
+        ModelBuilder.fromJavaClass(ca.uhn.hl7v2.model.v23.segment.EVN.class, Strategy.PROPERTIES).print(System.out);;
+    }
 }
 
 class ListOfStringsAndNumbers {
     private List<Number> numbers;
     private List<String> strings;
     private String field1;
+    
+    public List<Number> getNumbers() {
+        return numbers;
+    }
+    
+    public List<String> getStrings() {
+        return strings;
+    }
 }
 
 class NoSuper {

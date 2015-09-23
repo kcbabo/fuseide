@@ -11,41 +11,38 @@
  */
 package org.jboss.tools.fuse.transformation.model;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ModelBuilder {
+    
+    public enum Strategy {FIELDS, PROPERTIES, FIELDS_AND_PROPERTIES};
 
-    public static Model fromJavaClass(Class<?> javaClass) {
-        Model model = new Model(javaClass.getSimpleName(), javaClass.getName());
-        List<Field> fields = new LinkedList<Field>();
-        getFields(javaClass, fields);
-        addFieldsToModel(fields, model);
-        model.setModelClass(javaClass);
-        return model;
+    private static FieldModelParser fieldParser = new FieldModelParser();
+    private static PropertyModelParser propertyParser = new PropertyModelParser();
+    
+    private ModelParser parser;
+    
+    private ModelBuilder(Strategy strategy) {
+        switch (strategy) {
+            case FIELDS :
+                parser = fieldParser;
+                break;
+            case PROPERTIES :
+                parser = propertyParser;
+                break;
+            default :
+                throw new RuntimeException("Unsupported model strategy: " + strategy);
+        }
     }
 
-    public static Class<?> getFieldType(Field field) {
-        Class<?> type;
-
-        if (field.getType().isArray()) {
-            return field.getType().getComponentType();
-        } else if (Collection.class.isAssignableFrom(field.getType())) {
-            Type fieldType = field.getGenericType();
-            if (fieldType instanceof ParameterizedType) {
-                type = (Class<?>) ((ParameterizedType) fieldType).getActualTypeArguments()[0];
-            } else {
-                type = Object.class;
-            }
-        } else {
-            type = field.getType();
-        }
-
-        return type;
+    public static Model fromJavaClass(Class<?> javaClass) {
+        return fromJavaClass(javaClass, Strategy.PROPERTIES);
+    }
+    
+    public static Model fromJavaClass(Class<?> javaClass, Strategy strategy) {
+        ModelBuilder builder = new ModelBuilder(strategy);
+        return builder.generateModel(javaClass);
     }
 
     public static String getListName(Class<?> listType) {
@@ -55,71 +52,47 @@ public class ModelBuilder {
     public static String getListType(String listName) {
         return listName.split("\\[")[1].split("\\]")[0];
     }
+    
+    private Model generateModel(Class<?> javaClass) {
+        Model model = new Model(javaClass.getSimpleName(), javaClass.getName());
+        addFieldsToModel(parser.getModelFields(javaClass), model);
+        model.setModelClass(javaClass);
+        return model;
+    }
 
-    private static void addFieldsToModel(List<Field> fields, Model model) {
-        for (Field field : fields) {
-            Class<?> fieldClass;
-            boolean isCollection = false;
-
-            if (field.getType().isArray()) {
-                isCollection = true;
-                fieldClass = field.getType().getComponentType();
-            } else if (Collection.class.isAssignableFrom(field.getType())) {
-                isCollection = true;
-                Type ft = field.getGenericType();
-                if (ft instanceof ParameterizedType) {
-                    fieldClass = (Class<?>) ((ParameterizedType) ft).getActualTypeArguments()[0];
-                } else {
-                    fieldClass = Object.class;
-                }
-            } else {
-                fieldClass = field.getType();
-            }
-            
+    private void addFieldsToModel(List<ModelField> fields, Model model) {
+        for (ModelField field : fields) {
             // Create the model for this field
-            String fieldTypeName = isCollection ? getListName(fieldClass) : fieldClass.getName();
-            Model child = model.addChild(field.getName(), fieldTypeName);
-            child.setIsCollection(isCollection);
+            String fieldTypeName = field.isCollection ? getListName(field.type) : field.type.getName();
+            Model child = model.addChild(field.name, fieldTypeName);
+            child.setIsCollection(field.isCollection);
 
             // Deal with child fields if necessary
-            if (parseChildren(fieldClass)) {
-                addFieldsToModel(getFields(fieldClass, model), child);
+            if (parseChildren(field.type)) {
+                addFieldsToModel(getFields(field.type, model), child);
             }
         }
     }
 
-    private static List<Field> getFields(Class<?> clazz, Model parent) {
-        LinkedList<Field> fields = new LinkedList<Field>();
+    private List<ModelField> getFields(Class<?> clazz, Model parent) {
         boolean cycle = false;
         // convenient place to check for a cycle where a child field references an ancestor
         for (Model pm = parent; pm != null; pm = pm.getParent()) {
             String parentType = pm.isCollection() ? getListType(pm.getType()) : pm.getType();
+            System.out.println(clazz.getName() + " == " + parentType);
             if (clazz.getName().equals(parentType)) {
-                cycle = true;
-                break;
+                    cycle = true;
+                    break;
             }
         }
         if (!cycle) {
-            getFields(clazz, fields);
+            return parser.getModelFields(clazz);
+        } else {
+            return new LinkedList<ModelField>();
         }
-        return fields;
-    }
-
-    private static void getFields(Class<?> clazz, List<Field> fields) {
-        // check if we've hit rock bottom
-        if (clazz == null || Object.class.equals(clazz)) {
-            return;
-        }
-
-        for (Field field : clazz.getDeclaredFields()) {
-            if (!field.isSynthetic()) {
-                fields.add(field);
-            }
-        }
-        getFields(clazz.getSuperclass(), fields);
     }
     
-    private static boolean parseChildren(Class<?> fieldClass) {
+    private boolean parseChildren(Class<?> fieldClass) {
         boolean excluded = 
             fieldClass.isPrimitive()
             || fieldClass.getName().equals(String.class.getName())
