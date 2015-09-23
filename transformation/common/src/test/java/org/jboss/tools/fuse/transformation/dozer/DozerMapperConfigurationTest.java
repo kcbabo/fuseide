@@ -56,17 +56,8 @@ public class DozerMapperConfigurationTest {
 
     @Before
     public void setUp() {
-        modelA = new Model("AClass", "example.AClass");
-        modelA.setModelClass(AClass.class);
-        modelA.addChild("A1", "java.lang.Object");
-        modelA.addChild("A2", "java.lang.Object");
-        modelA.addChild("A3", "java.lang.Object");
-
-        modelB = new Model("BClass", "example.BClass");
-        modelB.setModelClass(BClass.class);
-        modelB.addChild("B1", "java.lang.Object");
-        modelB.addChild("B2", "java.lang.Object");
-        modelB.addChild("B3", "java.lang.Object");
+        modelA = ModelBuilder.fromJavaClass(AClass.class);
+        modelB = ModelBuilder.fromJavaClass(BClass.class);    
     }
 
     /*
@@ -111,7 +102,7 @@ public class DozerMapperConfigurationTest {
     @Test
     public void clearMappings() throws Exception {
         DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
-        config.mapField(modelA.get("A1"), modelB.get("B1"));
+        config.mapField(modelA.get("a1"), modelB.get("b1"));
         Assert.assertEquals(1, config.getMappings().size());
         config.removeAllMappings();
         Assert.assertEquals(0, config.getMappings().size());
@@ -167,18 +158,18 @@ public class DozerMapperConfigurationTest {
                 case "field1" :
                     testField1 = model;
                     break;
-                case "B1" :
+                case "b1" :
                     testField2 = model;
                     break;
-                case "A1" :
+                case "a1" :
                     testField3 = model;
                     break;
             }
         }
 
         Assert.assertEquals(referenceModel.get("nested1.field1"), testField1);
-        Assert.assertEquals(referenceModel.get("nested1.classB.B1"), testField2);
-        Assert.assertEquals(referenceModel.get("listOfAs.A1"), testField3);
+        Assert.assertEquals(referenceModel.get("nested1.classB.b1"), testField2);
+        Assert.assertEquals(referenceModel.get("listOfAs.a1"), testField3);
     }
 
     @Test
@@ -193,8 +184,8 @@ public class DozerMapperConfigurationTest {
     @Test
     public void mapField() throws Exception {
         DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
-        Model source = modelA.get("A1");
-        Model target = modelB.get("B1");
+        Model source = modelA.get("a1");
+        Model target = modelB.get("b1");
         config.mapField(source, target);
         FieldMapping mapping = (FieldMapping)config.getMappings().get(0);
         Assert.assertEquals(source, mapping.getSource());
@@ -204,9 +195,9 @@ public class DozerMapperConfigurationTest {
     @Test
     public void mapVariable() throws Exception {
         DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
-        Model target = modelB.get("B1");
+        Model target = modelB.get("b1");
         Variable variable = config.addVariable("VAR1", "ABC-VAL");
-        config.mapVariable(variable, modelB.get("B1"));
+        config.mapVariable(variable, modelB.get("b1"));
         VariableMapping mapping = (VariableMapping)config.getMappings().get(0);
         Assert.assertEquals(variable, mapping.getSource());
         Assert.assertEquals(target, mapping.getTarget());
@@ -228,8 +219,8 @@ public class DozerMapperConfigurationTest {
     @Test
     public void mapExpression() throws Exception {
         DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
-        Model target = modelB.get("B1");
-        config.mapExpression("simple", "\\${property.foo}", modelB.get("B1"));
+        Model target = modelB.get("b1");
+        config.mapExpression("simple", "\\${property.foo}", modelB.get("b1"));
         ExpressionMapping mapping = (ExpressionMapping)config.getMappings().get(0);
         Assert.assertEquals("simple", mapping.getSource().getLanguage());
         Assert.assertEquals("\\${property.foo}", mapping.getSource().getExpression());
@@ -305,8 +296,8 @@ public class DozerMapperConfigurationTest {
     @Test
     public void removeMapping() throws Exception {
         DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
-        Model source = modelA.get("A1");
-        Model target = modelB.get("B1");
+        Model source = modelA.get("a1");
+        Model target = modelB.get("b1");
         FieldMapping mapping = config.mapField(source, target);
         Assert.assertNotNull(mapping);
         Assert.assertEquals(1, config.getMappings().size());
@@ -320,8 +311,8 @@ public class DozerMapperConfigurationTest {
         final String functionClass = "org.foo.TestCustomizer";
         final String functionName = "customMap";
         DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
-        Model source = modelA.get("A1");
-        Model target = modelB.get("B1");
+        Model source = modelA.get("a1");
+        Model target = modelB.get("b1");
         FieldMapping mapping = config.mapField(source, target);
         config.customizeMapping(mapping, functionClass, functionName);
         Assert.assertEquals(1, config.getMappings().size());
@@ -337,8 +328,8 @@ public class DozerMapperConfigurationTest {
         final String functionName = "customMap";
         final String arg = Boolean.class.getName() + "=" + "true";
         DozerMapperConfiguration config = loadConfig("emptyDozerMapping.xml");
-        Model source = modelA.get("A1");
-        Model target = modelB.get("B1");
+        Model source = modelA.get("a1");
+        Model target = modelB.get("b1");
         FieldMapping mapping = config.mapField(source, target);
         config.customizeMapping(mapping, functionClass, functionName, arg);
         Assert.assertEquals(1, config.getMappings().size());
@@ -496,25 +487,53 @@ public class DozerMapperConfigurationTest {
 
 class A {
     private String data;
+    
+    public String getData() {
+        return data;
+    }
 }
 
 class B {
     private C c;
     private String data;
+    
+    public C getC() {
+        return c;
+    }
+    
+    public String getData() {
+        return data;
+    }
 }
 
 class C {
     private D d;
+    
+    public D getD() {
+        return d;
+    }
 }
 
 class D {
     private String data;
+    
+    public String getData() {
+        return data;
+    }
 }
 
 class ListOfC {
     private List<C> listOfCs = new ArrayList<C>(1);
+    
+    public List<C> getListOfCs() {
+        return listOfCs;
+    }
 }
 
 class ListOfD {
     private List<D> listOfDs = new ArrayList<D>(1);
+    
+    public List<D> getListOfDs() {
+        return listOfDs;
+    }
 }

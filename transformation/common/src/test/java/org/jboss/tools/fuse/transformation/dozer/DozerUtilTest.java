@@ -55,7 +55,7 @@ public class DozerUtilTest {
     @Test
     public void getFieldName() throws Exception {
         final String directChild = "listOfAs";
-        final String nestedChild = "nested1.classB.B1";
+        final String nestedChild = "nested1.classB.b1";
         final String fieldL1name = "fieldL1";
         final String fieldL2name = "listL1[0].fieldL2";
         final String fieldL3name = "listL1[0].listL2[1].fieldL3";

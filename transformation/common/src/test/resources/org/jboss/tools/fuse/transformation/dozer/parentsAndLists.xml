@@ -13,12 +13,12 @@
             <b>nested2.field2</b>
         </field>
         <field>
-            <a>nested1.classB.B1</a>
-            <b>nested2.classB.B3</b>
+            <a>nested1.classB.b1</a>
+            <b>nested2.classB.b3</b>
         </field>
         <field>
-            <a>nested1.classB.B2</a>
-            <b>nested2.classB.B1</b>
+            <a>nested1.classB.b2</a>
+            <b>nested2.classB.b1</b>
         </field>
         <field>
             <a>listOfAs</a>
@@ -29,16 +29,16 @@
         <class-a>example.AClass</class-a>
         <class-b>example.AClass</class-b>
         <field>
-            <a>A1</a>
-            <b>A2</b>
+            <a>a1</a>
+            <b>a2</b>
         </field>
         <field>
-            <a>A2</a>
-            <b>A3</b>
+            <a>a2</a>
+            <b>a3</b>
         </field>
         <field>
-            <a>A3</a>
-            <b>A1</b>
+            <a>a3</a>
+            <b>a1</b>
         </field>
     </mapping>
 	
