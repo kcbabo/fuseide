@@ -32,14 +32,22 @@ public class PropertyModelParser implements ModelParser {
     private void getProperties(Class<?> clazz, List<ModelField> fields) {
         BeanInfo beanInfo;
         try {
-            beanInfo = Introspector.getBeanInfo(clazz, Object.class);
+            if (clazz.isInterface()) {
+                beanInfo = Introspector.getBeanInfo(clazz);
+            } else {
+                beanInfo = Introspector.getBeanInfo(clazz, Object.class);
+            }
         } catch (IntrospectionException inEx) {
-            throw new RuntimeException("Failed to introspect " + clazz.getName());
+            throw new RuntimeException("Failed to introspect " + clazz.getName(), inEx);
         }
         
         for (PropertyDescriptor prop : beanInfo.getPropertyDescriptors()) {
             ModelField field = new ModelField();
             field.name = prop.getName();
+            // Ignore properties without a read method
+            if (prop.getReadMethod() == null) {
+                continue;
+            }
             Class<?> fieldType = prop.getReadMethod().getReturnType();
             
             if (fieldType.isArray()) {

@@ -37,7 +37,7 @@ public class ModelBuilder {
     }
 
     public static Model fromJavaClass(Class<?> javaClass) {
-        return fromJavaClass(javaClass, Strategy.FIELDS);
+        return fromJavaClass(javaClass, Strategy.PROPERTIES);
     }
     
     public static Model fromJavaClass(Class<?> javaClass, Strategy strategy) {
@@ -63,7 +63,7 @@ public class ModelBuilder {
     private void addFieldsToModel(List<ModelField> fields, Model model) {
         for (ModelField field : fields) {
             // Create the model for this field
-            String fieldTypeName = field.isCollection ? getListName(field.type) : field.name;
+            String fieldTypeName = field.isCollection ? getListName(field.type) : field.type.getName();
             Model child = model.addChild(field.name, fieldTypeName);
             child.setIsCollection(field.isCollection);
 
@@ -79,9 +79,10 @@ public class ModelBuilder {
         // convenient place to check for a cycle where a child field references an ancestor
         for (Model pm = parent; pm != null; pm = pm.getParent()) {
             String parentType = pm.isCollection() ? getListType(pm.getType()) : pm.getType();
+            System.out.println(clazz.getName() + " == " + parentType);
             if (clazz.getName().equals(parentType)) {
-                cycle = true;
-                break;
+                    cycle = true;
+                    break;
             }
         }
         if (!cycle) {

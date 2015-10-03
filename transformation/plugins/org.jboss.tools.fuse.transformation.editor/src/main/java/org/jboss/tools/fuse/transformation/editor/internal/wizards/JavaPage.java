@@ -51,7 +51,6 @@ public class JavaPage extends XformWizardPage implements TransformationTypePage 
     private Composite _page;
     private boolean isSource = true;
     private Text _javaClassText;
-    private ModelBuilder _builder;
     private org.jboss.tools.fuse.transformation.model.Model _javaModel = null;
     private SimplerModelViewer _modelViewer;
     private Binding _binding;
@@ -65,7 +64,6 @@ public class JavaPage extends XformWizardPage implements TransformationTypePage 
         setImageDescriptor(Activator.imageDescriptor("transform.png"));
         this.isSource = isSource;
         observablesManager.addObservablesFromContext(context, true, true);
-        _builder = new ModelBuilder();
     }
 
     @Override
@@ -142,7 +140,7 @@ public class JavaPage extends XformWizardPage implements TransformationTypePage 
                             NewTransformationWizard wizard = (NewTransformationWizard) getWizard();
                             try {
                                 Class<?> tempClass = wizard.getLoader().loadClass(selected.getFullyQualifiedName());
-                                _javaModel = _builder.fromJavaClass(tempClass);
+                                _javaModel = ModelBuilder.fromJavaClass(tempClass);
                                 _modelViewer.setModel(_javaModel);
                             } catch (ClassNotFoundException e) {
                                 e.printStackTrace();
